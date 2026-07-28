@@ -25,7 +25,7 @@ function loginWithGoogle() {
     </p>
 
     <div class="w-full max-w-xs">
-      <Button @click="loginWithKakao">카카오로 로그인</Button>
+      <Button variant="accent" @click="loginWithKakao">카카오로 로그인</Button>
     </div>
     <div class="w-full max-w-xs">
       <Button variant="outline" @click="loginWithGoogle">구글로 로그인</Button>
