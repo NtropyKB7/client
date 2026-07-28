@@ -24,7 +24,6 @@ export const useModalStore = defineStore('modal', () => {
     isOpen.value = false
     component.value = null
     props.value = {}
-    position.value = 'center'
 
     resolvePromise?.(payload)
     resolvePromise = null
