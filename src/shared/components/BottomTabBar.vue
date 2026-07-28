@@ -24,7 +24,7 @@ const tabs = [
       :key="tab.label"
       :to="tab.to"
       class="flex flex-1 flex-col items-center gap-1 py-2 text-xs text-[#6B6A65]"
-      active-class="text-[#000000]"
+      active-class="text-[#000000]!"
     >
       <component :is="tab.icon" class="h-6 w-6" />
       {{ tab.label }}
