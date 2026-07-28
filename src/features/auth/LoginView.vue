@@ -1,15 +1,29 @@
 <script setup>
+import { useRouter } from 'vue-router'
+import { useAuthStore } from './store'
 import Button from '@/shared/components/Button.vue'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
+const router = useRouter()
+const authStore = useAuthStore()
 
 // 아래 두 경로는 Spring Security OAuth2 기본 컨벤션을 가정한 placeholder다.
 // 백엔드의 실제 소셜 로그인 진입 경로가 확정되면 이 값만 바꾸면 된다.
 function loginWithKakao() {
+  if (import.meta.env.DEV) {
+    authStore.setAccessToken('debug')
+    router.push({ name: 'home' })
+    return
+  }
   window.location.href = `${apiBaseUrl}/oauth2/authorization/kakao`
 }
 
 function loginWithGoogle() {
+  if (import.meta.env.DEV) {
+    authStore.setAccessToken('debug')
+    router.push({ name: 'home' })
+    return
+  }
   window.location.href = `${apiBaseUrl}/oauth2/authorization/google`
 }
 </script>
@@ -25,7 +39,7 @@ function loginWithGoogle() {
     </p>
 
     <div class="w-full max-w-xs">
-      <Button @click="loginWithKakao">카카오로 로그인</Button>
+      <Button variant="accent" @click="loginWithKakao">카카오로 로그인</Button>
     </div>
     <div class="w-full max-w-xs">
       <Button variant="outline" @click="loginWithGoogle">구글로 로그인</Button>

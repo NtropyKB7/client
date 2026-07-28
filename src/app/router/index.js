@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/features/auth/store'
+import { useOnboardingStore } from '@/features/onboarding/store'
 import AppLayout from '@/shared/components/AppLayout.vue'
 
 const routes = [
@@ -14,9 +15,27 @@ const routes = [
     component: () => import('@/features/auth/AuthCallbackView.vue'),
   },
   {
+    path: '/onboarding/account',
+    name: 'onboarding-account',
+    component: () => import('@/features/onboarding/AccountSetupView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/onboarding/job',
+    name: 'onboarding-job',
+    component: () => import('@/features/onboarding/JobSetupView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/onboarding/goal',
+    name: 'onboarding-goal',
+    component: () => import('@/features/onboarding/GoalSetupView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/',
     component: AppLayout,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresOnboarding: true },
     children: [
       { path: '', redirect: { name: 'home' } },
       {
@@ -58,6 +77,12 @@ router.beforeEach((to) => {
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     return { name: 'login' }
   }
+
+  const onboardingStore = useOnboardingStore()
+  if (to.meta.requiresOnboarding && authStore.isAuthenticated && !onboardingStore.isComplete) {
+    return { name: 'onboarding-account' }
+  }
+
   return true
 })
 
