@@ -23,15 +23,19 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const hasAccounts = computed(() => accounts.value.length > 0)
 
   function persist() {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({
-        accounts: accounts.value,
-        jobs: jobs.value,
-        goal: goal.value,
-        isComplete: isComplete.value,
-      }),
-    )
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({
+          accounts: accounts.value,
+          jobs: jobs.value,
+          goal: goal.value,
+          isComplete: isComplete.value,
+        }),
+      )
+    } catch {
+      // localStorage 쓰기 실패(용량 초과, 프라이빗 브라우징 등) 시 무시 — 인메모리 상태는 이미 갱신된 상태를 유지
+    }
   }
 
   function setAccounts(newAccounts) {
