@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
 import { useModalStore } from '@/shared/store/modal'
 import BankPickerModal from './components/BankPickerModal.vue'
+import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
 const onboardingStore = useOnboardingStore()
@@ -95,13 +96,6 @@ function submit() {
       </button>
     </div>
 
-    <button
-      type="button"
-      class="mt-auto w-full rounded-lg bg-[#FFCC00] py-3 text-sm font-semibold text-[#111110] disabled:opacity-40"
-      :disabled="!isValid"
-      @click="submit"
-    >
-      계좌 설정 완료
-    </button>
+    <Button :disabled="!isValid" @click="submit">계좌 설정 완료</Button>
   </div>
 </template>
