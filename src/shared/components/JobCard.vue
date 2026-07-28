@@ -9,7 +9,7 @@ const props = defineProps({
   job: { type: Object, required: true },
 })
 
-const emit = defineEmits(['save', 'edit-income'])
+const emit = defineEmits(['save', 'edit-income', 'delete'])
 
 function cloneJob(job) {
   return {
@@ -57,6 +57,10 @@ function save() {
 function requestIncomeEdit() {
   emit('edit-income', cloneJob(props.job))
 }
+
+function requestDelete() {
+  emit('delete')
+}
 </script>
 
 <template>
@@ -70,9 +74,14 @@ function requestIncomeEdit() {
             {{ job.incomeMethodLabel }} ({{ job.incomeAmount.toLocaleString() }}원)
           </p>
         </div>
-        <button type="button" class="shrink-0 text-xs text-[#6B6A65] underline" @click="startEdit">
-          수정
-        </button>
+        <div class="flex shrink-0 items-center gap-2">
+          <button type="button" class="text-xs text-[#6B6A65] underline" @click="startEdit">
+            수정
+          </button>
+          <button type="button" class="text-xs text-[#6B6A65] underline" @click="requestDelete">
+            삭제
+          </button>
+        </div>
       </div>
       <p class="mt-2 text-xs text-[#6B6A65]">
         피로도 {{ summaryFatigueLabel }}

@@ -69,20 +69,14 @@ function submit() {
     <p v-if="isLoading" class="text-sm text-[#6B6A65]">불러오는 중...</p>
 
     <div v-else class="flex flex-col gap-3">
-      <div v-for="(job, index) in jobs" :key="job.id" class="flex flex-col gap-1">
-        <JobCard
-          :job="job"
-          @save="(updated) => updateJob(index, updated)"
-          @edit-income="handleEditIncome"
-        />
-        <button
-          type="button"
-          class="self-end text-xs text-[#6B6A65] underline"
-          @click="removeJob(index)"
-        >
-          삭제
-        </button>
-      </div>
+      <JobCard
+        v-for="(job, index) in jobs"
+        :key="job.id"
+        :job="job"
+        @save="(updated) => updateJob(index, updated)"
+        @edit-income="handleEditIncome"
+        @delete="removeJob(index)"
+      />
 
       <button
         type="button"
