@@ -96,6 +96,6 @@ function submit() {
       </button>
     </div>
 
-    <Button :disabled="!isValid" @click="submit">계좌 설정 완료</Button>
+    <Button class="mt-auto" :disabled="!isValid" @click="submit">계좌 설정 완료</Button>
   </div>
 </template>
