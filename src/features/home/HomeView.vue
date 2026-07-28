@@ -58,8 +58,8 @@ const { data: dashboard, isLoading } = useQuery({
       <div class="grid grid-cols-2 gap-3">
         <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
           <DonutRing :percent="dashboard.achievementRate.percent" color-class="text-emerald-500">
-            <span class="text-[9px] leading-tight text-[#6B6A65]">
-              정주비<br />{{ dashboard.fixedCostSummary.toLocaleString() }}원
+            <span class="text-sm font-semibold text-[#111110]">
+              {{ dashboard.achievementRate.percent }}%
             </span>
           </DonutRing>
           <p class="mt-2 text-xs text-[#6B6A65]">현재 목표 달성율</p>
@@ -71,8 +71,8 @@ const { data: dashboard, isLoading } = useQuery({
 
         <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
           <DonutRing :percent="dashboard.settlementAmount.percent" color-class="text-amber-500">
-            <span class="text-[9px] leading-tight text-[#6B6A65]">
-              정주비<br />{{ dashboard.fixedCostSummary.toLocaleString() }}원
+            <span class="text-sm font-semibold text-[#111110]">
+              {{ dashboard.settlementAmount.percent }}%
             </span>
           </DonutRing>
           <div class="mt-2 flex items-center justify-between">

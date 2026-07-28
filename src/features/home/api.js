@@ -33,7 +33,6 @@ const MOCK_DASHBOARD = {
       reduced: false,
     },
   ],
-  fixedCostSummary: 450000,
   achievementRate: {
     percent: 78,
     amount: 1950000,
