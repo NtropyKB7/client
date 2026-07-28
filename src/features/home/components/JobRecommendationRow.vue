@@ -1,6 +1,5 @@
-<!-- src/features/home/components/JobRecommendationRow.vue -->
 <script setup>
-import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
+import { computed } from 'vue'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -11,26 +10,39 @@ const props = defineProps({
   reduced: { type: Boolean, default: false },
 })
 
-const badge = getFatigueBadge(props.fatigue, 5)
+const BAR_MAX_HOURS = 20
+
+const barColorClass = computed(() => {
+  const ratio = props.fatigue / 5
+  if (ratio >= 0.8) return 'bg-red-500'
+  if (ratio >= 0.5) return 'bg-amber-500'
+  return 'bg-emerald-500'
+})
+
+const barWidthPercent = computed(() =>
+  Math.min(100, (props.recommendedHours / BAR_MAX_HOURS) * 100),
+)
 </script>
 
 <template>
-  <div class="flex items-center justify-between border-b border-[#111110]/5 py-3 last:border-b-0">
-    <div>
-      <p class="text-sm font-medium text-[#111110]">{{ name }}</p>
-      <p class="text-[11px] text-[#6B6A65]">ROI {{ roi }}pt/hr · 추천 {{ recommendedHours }}h</p>
-      <span
-        v-if="reduced"
-        class="mt-1 inline-block rounded-full bg-[#FFF3C4] px-2 py-0.5 text-[10px] text-[#6b5400]"
-      >
-        근무시간 감축 안내
-      </span>
+  <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
+    <div class="flex items-center justify-between">
+      <p class="text-sm font-semibold text-[#111110]">{{ name }}</p>
+      <p class="text-sm font-semibold text-[#111110]">{{ recommendedHours }}h</p>
     </div>
-    <div class="text-right">
-      <p class="text-sm font-semibold text-[#111110]">{{ expectedIncome.toLocaleString() }}원</p>
-      <span class="rounded-full px-2 py-0.5 text-[10px] font-semibold" :class="badge.className">
-        {{ badge.label }}
-      </span>
+    <div class="mt-1 flex items-center justify-between">
+      <p class="text-[11px] text-[#6B6A65]">
+        피로도 {{ fatigue }} · ROI {{ roi.toLocaleString() }}pt/hr
+      </p>
+      <p class="text-[11px] text-[#6B6A65]">{{ expectedIncome.toLocaleString() }}원</p>
     </div>
+    <div class="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[#F3F1EC]">
+      <div
+        class="h-full rounded-full"
+        :class="barColorClass"
+        :style="{ width: `${barWidthPercent}%` }"
+      />
+    </div>
+    <p v-if="reduced" class="mt-2 text-[11px] text-red-500">⚠ 추천 시간 자동 감축됨</p>
   </div>
 </template>
