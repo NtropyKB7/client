@@ -1,14 +1,17 @@
 <script setup>
 import { useRouter } from 'vue-router'
+import { useAuthStore } from './store'
 import Button from '@/shared/components/Button.vue'
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 const router = useRouter()
+const authStore = useAuthStore()
 
 // 아래 두 경로는 Spring Security OAuth2 기본 컨벤션을 가정한 placeholder다.
 // 백엔드의 실제 소셜 로그인 진입 경로가 확정되면 이 값만 바꾸면 된다.
 function loginWithKakao() {
   if (import.meta.env.DEV) {
+    authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
   }
@@ -17,6 +20,7 @@ function loginWithKakao() {
 
 function loginWithGoogle() {
   if (import.meta.env.DEV) {
+    authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
   }
