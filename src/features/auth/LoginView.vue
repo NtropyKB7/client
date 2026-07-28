@@ -1,4 +1,6 @@
 <script setup>
+import Button from '@/shared/components/Button.vue'
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 
 // 아래 두 경로는 Spring Security OAuth2 기본 컨벤션을 가정한 placeholder다.
@@ -22,20 +24,12 @@ function loginWithGoogle() {
       무질서한 소득을 진단하고 자산으로 연결합니다.
     </p>
 
-    <button
-      type="button"
-      class="w-full max-w-xs rounded-lg bg-yellow-300 py-3 font-medium"
-      @click="loginWithKakao"
-    >
-      카카오로 로그인
-    </button>
-    <button
-      type="button"
-      class="w-full max-w-xs rounded-lg border border-gray-300 bg-white py-3 font-medium"
-      @click="loginWithGoogle"
-    >
-      구글로 로그인
-    </button>
+    <div class="w-full max-w-xs">
+      <Button @click="loginWithKakao">카카오로 로그인</Button>
+    </div>
+    <div class="w-full max-w-xs">
+      <Button variant="outline" @click="loginWithGoogle">구글로 로그인</Button>
+    </div>
 
     <p class="mt-8 text-[10.5px] text-[#8A8778]">
       계속 진행 시 이용약관 및 마이데이터 수집·이용에 동의합니다
