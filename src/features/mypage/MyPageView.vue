@@ -1,13 +1,25 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useModalStore } from '@/shared/store/modal'
+import { useAuthStore } from '@/features/auth/store'
+import { useOnboardingStore } from '@/features/onboarding/store'
 import TestModal from './TestModal.vue'
 import JobCard from '@/shared/components/JobCard.vue'
 import Button from '@/shared/components/Button.vue'
 import StatCard from '@/shared/components/StatCard.vue'
 import Container from '@/shared/components/Container.vue'
 
+const router = useRouter()
 const modalStore = useModalStore()
+const authStore = useAuthStore()
+const onboardingStore = useOnboardingStore()
+
+function handleLogout() {
+  onboardingStore.reset()
+  authStore.logout()
+  router.push({ name: 'login' })
+}
 
 function openTestModal() {
   modalStore.open(TestModal)
@@ -41,6 +53,8 @@ function handleEditIncome(job) {
 
 <template>
   <div class="flex flex-col gap-4 p-4">
+    <Button variant="outline" @click="handleLogout">로그아웃</Button>
+
     <h1 class="text-xl font-bold">마이페이지</h1>
 
     <!-- TEMP: 공용 컴포넌트 동작 확인용 임시 데모 영역.
