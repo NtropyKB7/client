@@ -18,13 +18,24 @@ function openBottomSheetTest() {
 }
 
 const demoJob = ref({
-  name: '대리운전',
-  cyclePattern: '평일 저녁 6시~11시',
-  settlementCycle: '익일 정산',
+  id: 'job-1',
+  name: '배달',
+  incomeMethodLabel: '건당 정산',
+  incomeAmount: 0,
+  fatigue: 3,
+  isRegular: true,
+  workDays: ['화', '금'],
+  startTime: '11:00',
+  endTime: '15:00',
 })
 
 function updateDemoJob(updated) {
   demoJob.value = updated
+}
+
+function handleEditIncome(job) {
+  // TEMP: 소득방식·금액 수정 바텀시트는 별도 태스크에서 구현 예정. 지금은 콘솔 확인용.
+  console.log('edit-income requested', job)
 }
 </script>
 
@@ -42,12 +53,7 @@ function updateDemoJob(updated) {
         <Button variant="outline" @click="openBottomSheetTest">바텀시트 테스트</Button>
       </div>
 
-      <JobCard
-        :name="demoJob.name"
-        :cycle-pattern="demoJob.cyclePattern"
-        :settlement-cycle="demoJob.settlementCycle"
-        @save="updateDemoJob"
-      />
+      <JobCard :job="demoJob" @save="updateDemoJob" @edit-income="handleEditIncome" />
 
       <StatCard
         title="목표 달성율"
