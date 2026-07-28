@@ -12,6 +12,8 @@ const onboardingStore = useOnboardingStore()
 const amount = ref(onboardingStore.goal.amount)
 const fatigue = ref(onboardingStore.goal.fatigue)
 
+const FATIGUE_LABELS = ['매우 가벼움', '가벼움', '보통', '힘듦', '매우 힘듦']
+
 const achievableRange = computed(() => calculateAchievableRange(amount.value, fatigue.value))
 
 function formatWon(value) {
@@ -43,14 +45,26 @@ function submit() {
       :format-value="formatWon"
     />
 
-    <RangeSlider
-      v-model="fatigue"
-      label="감내 가능한 노동 피로도"
-      :min="1"
-      :max="5"
-      :step="1"
-      :format-value="(v) => `${v} / 5`"
-    />
+    <div>
+      <p class="text-xs text-[#6B6A65]">감내 가능한 노동 피로도 (1~5)</p>
+      <div class="mt-1 flex gap-2">
+        <button
+          v-for="level in 5"
+          :key="level"
+          type="button"
+          class="h-9 flex-1 rounded-lg border text-sm font-medium"
+          :class="
+            fatigue === level
+              ? 'border-[#E0B400] text-[#E0B400]'
+              : 'border-[#111110]/10 text-[#6B6A65]'
+          "
+          @click="fatigue = level"
+        >
+          {{ level }}
+        </button>
+      </div>
+      <p class="mt-1 text-xs text-[#E0B400]">{{ FATIGUE_LABELS[fatigue - 1] }}</p>
+    </div>
 
     <p class="rounded-lg bg-[#FFF3C4] px-4 py-3 text-xs text-[#6b5400]">
       현재 조건에서 달성 가능한 범위는 {{ formatWon(achievableRange.min) }} ~
