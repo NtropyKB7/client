@@ -11,7 +11,7 @@ defineProps({
   fatigueThreshold: { type: Number, required: true },
 })
 
-const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry'])
+const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry', 'delete-entry'])
 </script>
 
 <template>
@@ -59,6 +59,14 @@ const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry'])
           @click="emit('confirm-entry', entry)"
         >
           확정하기
+        </button>
+        <button
+          v-if="entry.status !== 'settled'"
+          type="button"
+          class="text-red-600 underline"
+          @click="emit('delete-entry', entry)"
+        >
+          삭제하기
         </button>
       </div>
     </div>
