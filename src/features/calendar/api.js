@@ -22,7 +22,7 @@ export const SEED_ENTRIES_2026_07 = [
     jobName: '대리운전',
     category: 'driving',
     startTime: '20:00',
-    endTime: '24:00',
+    endTime: '00:00',
     count: 8,
     fatigue: 2,
     status: 'settled',
