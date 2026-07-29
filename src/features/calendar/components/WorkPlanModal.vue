@@ -36,6 +36,7 @@ const isValid = computed(() => draft.value.jobId && draft.value.startTime && dra
 function submit() {
   if (!isValid.value) return
   const job = selectedJob.value
+  if (!job) return
   const payload = {
     jobId: job.id,
     jobName: job.name,
