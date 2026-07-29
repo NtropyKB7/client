@@ -29,7 +29,7 @@ function confirmDelete() {
         <Button variant="outline" @click="cancel">취소</Button>
       </div>
       <div class="flex-1">
-        <Button variant="primary" @click="confirmDelete">삭제</Button>
+        <Button variant="danger" @click="confirmDelete">삭제</Button>
       </div>
     </div>
   </div>

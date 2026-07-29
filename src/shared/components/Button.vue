@@ -2,7 +2,7 @@
 defineOptions({ name: 'AppButton' })
 
 defineProps({
-  variant: { type: String, default: 'primary' }, // 'primary' | 'outline' | 'accent'
+  variant: { type: String, default: 'primary' }, // 'primary' | 'outline' | 'accent' | 'danger'
   type: { type: String, default: 'button' },
   disabled: { type: Boolean, default: false },
 })
@@ -20,7 +20,9 @@ defineEmits(['click'])
         ? 'bg-[#FFCC00] text-[#111110]'
         : variant === 'outline'
           ? 'border border-[#111110]/20 bg-white text-[#111110]'
-          : 'bg-[#111110] text-white'
+          : variant === 'danger'
+            ? 'bg-rose-600 text-white'
+            : 'bg-[#111110] text-white'
     "
     @click="$emit('click', $event)"
   >
