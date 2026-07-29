@@ -76,5 +76,5 @@ const STATUS_BADGE = {
 }
 
 export function getEntryStatusBadge(status) {
-  return STATUS_BADGE[status]
+  return STATUS_BADGE[status] ?? { label: '미정', className: 'bg-gray-100 text-gray-700' }
 }
