@@ -20,6 +20,7 @@ import CalendarGrid from './components/CalendarGrid.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
 import WorkPlanModal from './components/WorkPlanModal.vue'
+import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
@@ -52,6 +53,7 @@ const cells = computed(() =>
       status: computeDayStatus(dayEntries, isDefenseMode),
       categories: getUniqueCategories(dayEntries),
       isSelected: dateKey === selectedDateKey.value,
+      weather: monthConfig.value?.weatherByDate?.[dateKey] ?? null,
     }
   }),
 )
@@ -132,6 +134,13 @@ async function openConfirmModal(entry) {
     calendarStore.updateEntry(entry.id, payload)
   }
 }
+
+async function openDeleteConfirm(entry) {
+  const confirmed = await modalStore.open(DeleteConfirmModal, { entry }, { position: 'center' })
+  if (confirmed) {
+    calendarStore.deleteEntry(entry.id)
+  }
+}
 </script>
 
 <template>
@@ -175,6 +184,7 @@ async function openConfirmModal(entry) {
       @add-plan="openCreateModal"
       @edit-entry="openEditModal"
       @confirm-entry="openConfirmModal"
+      @delete-entry="openDeleteConfirm"
     />
 
     <MonthSummaryBar
