@@ -16,7 +16,7 @@ const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토']
     <div class="grid grid-cols-7 text-center text-xs text-[#6B6A65]">
       <span v-for="day in WEEKDAYS" :key="day">{{ day }}</span>
     </div>
-    <div class="mt-2 grid grid-cols-7 gap-y-2">
+    <div class="mt-4 grid grid-cols-7 gap-1.5">
       <CalendarCell
         v-for="(cell, index) in cells"
         :key="cell ? cell.dateKey : `empty-${index}`"

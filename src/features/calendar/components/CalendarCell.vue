@@ -21,7 +21,7 @@ const STATUS_BG = {
   <button
     v-else
     type="button"
-    class="flex flex-col items-center gap-1 rounded-full py-1.5 text-sm"
+    class="flex flex-col items-center gap-1 rounded-lg py-3 text-sm"
     :class="[STATUS_BG[cell.status], cell.isSelected ? 'ring-2 ring-[#111110]' : '']"
     @click="emit('select')"
   >
