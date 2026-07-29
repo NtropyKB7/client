@@ -42,5 +42,13 @@ export const useCalendarStore = defineStore('calendar', () => {
     }
   }
 
-  return { entries, entriesForDate, addEntry, updateEntry }
+  function deleteEntry(id) {
+    const index = entries.value.findIndex((entry) => entry.id === id)
+    if (index !== -1) {
+      entries.value.splice(index, 1)
+      persist()
+    }
+  }
+
+  return { entries, entriesForDate, addEntry, updateEntry, deleteEntry }
 })
