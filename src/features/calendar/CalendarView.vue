@@ -179,9 +179,9 @@ async function openConfirmModal(entry) {
 
     <MonthSummaryBar
       :planned-hours="plannedHours"
-      :target-hours="monthConfig?.summaryTarget.hours ?? 0"
+      :target-hours="monthConfig?.summaryTarget?.hours ?? 0"
       :planned-income="plannedIncome"
-      :target-income="monthConfig?.summaryTarget.income ?? 0"
+      :target-income="monthConfig?.summaryTarget?.income ?? 0"
     />
   </div>
 </template>
