@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Button from './Button.vue'
+import { JOB_CATEGORIES, getJobCategory } from '@/shared/utils/jobCategory'
 
 const FATIGUE_LABELS = ['매우 가벼움', '가벼움', '보통', '힘듦', '매우 힘듦']
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -22,6 +23,7 @@ function cloneJob(job) {
     workDays: [...job.workDays],
     startTime: job.startTime,
     endTime: job.endTime,
+    category: job.category,
   }
 }
 
@@ -84,7 +86,7 @@ function requestDelete() {
         </div>
       </div>
       <p class="mt-2 text-xs text-[#6B6A65]">
-        피로도 {{ summaryFatigueLabel }}
+        {{ getJobCategory(job.category).label }} · 피로도 {{ summaryFatigueLabel }}
         <template v-if="job.isRegular">
           · {{ job.workDays.join(', ') }} {{ job.startTime }}~{{ job.endTime }}
         </template>
@@ -119,6 +121,24 @@ function requestDelete() {
         </button>
       </div>
       <p class="mt-1 text-xs text-[#E0B400]">{{ draftFatigueLabel }}</p>
+
+      <p class="mt-3 text-xs text-[#6B6A65]">잡 카테고리</p>
+      <div class="mt-1 flex gap-2">
+        <button
+          v-for="category in JOB_CATEGORIES"
+          :key="category.value"
+          type="button"
+          class="h-9 flex-1 rounded-lg border text-xs font-medium"
+          :class="
+            draft.category === category.value
+              ? 'border-[#E0B400] text-[#E0B400]'
+              : 'border-[#111110]/10 text-[#6B6A65]'
+          "
+          @click="draft.category = category.value"
+        >
+          {{ category.label }}
+        </button>
+      </div>
 
       <div class="mt-3 flex items-center justify-between">
         <p class="text-sm text-[#111110]">정기 근무</p>

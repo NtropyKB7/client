@@ -25,6 +25,7 @@ const MOCK_DETECTED_JOBS = [
     workDays: ['화', '목', '토'],
     startTime: '19:00',
     endTime: '23:00',
+    category: 'driving',
   },
   {
     id: 'job-2',
@@ -36,6 +37,7 @@ const MOCK_DETECTED_JOBS = [
     workDays: ['토', '일'],
     startTime: '11:00',
     endTime: '15:00',
+    category: 'delivery',
   },
   {
     id: 'job-3',
@@ -47,6 +49,7 @@ const MOCK_DETECTED_JOBS = [
     workDays: [],
     startTime: '',
     endTime: '',
+    category: 'creative',
   },
 ]
 

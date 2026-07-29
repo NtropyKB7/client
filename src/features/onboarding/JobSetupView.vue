@@ -43,6 +43,7 @@ function addCustomJob() {
     workDays: [],
     startTime: '',
     endTime: '',
+    category: 'other',
   })
 }
 
