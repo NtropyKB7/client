@@ -21,10 +21,13 @@ const STATUS_BG = {
   <button
     v-else
     type="button"
-    class="flex flex-col items-center gap-1 rounded-lg py-3 text-sm"
+    class="relative flex flex-col items-center gap-1 rounded-lg py-3 text-sm"
     :class="[STATUS_BG[cell.status], cell.isSelected ? 'ring-2 ring-[#111110]' : '']"
     @click="emit('select')"
   >
+    <span v-if="cell.weather" class="absolute -right-0.5 -top-0.5 text-[10px] leading-none">
+      {{ cell.weather.icon }}
+    </span>
     <span class="font-medium text-[#111110]">{{ cell.dayNumber }}</span>
     <span class="flex h-0.5 gap-0.5">
       <span
