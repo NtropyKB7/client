@@ -9,8 +9,10 @@ const authStore = useAuthStore()
 
 // 아래 두 경로는 Spring Security OAuth2 기본 컨벤션을 가정한 placeholder다.
 // 백엔드의 실제 소셜 로그인 진입 경로가 확정되면 이 값만 바꾸면 된다.
+// TEMP: apiBaseUrl이 비어있으면(백엔드 미연동) 실제 OAuth 대신 로컬 스텁으로 우회한다.
+// VITE_API_BASE_URL이 채워지면 이 if 블록을 삭제하고 아래 실제 로직만 남길 것.
 function loginWithKakao() {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || !apiBaseUrl) {
     authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
@@ -19,7 +21,7 @@ function loginWithKakao() {
 }
 
 function loginWithGoogle() {
-  if (import.meta.env.DEV) {
+  if (import.meta.env.DEV || !apiBaseUrl) {
     authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
