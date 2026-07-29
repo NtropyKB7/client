@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import { useCalendarStore } from './store'
-import { fetchCalendarMonth, FATIGUE_THRESHOLD, GREETING_NAME } from './api'
+import { fetchCalendarMonth, FATIGUE_THRESHOLD, GREETING_NAME, TODAY_DATE_KEY } from './api'
 import {
   getMonthGrid,
   formatDateKey,
@@ -181,6 +181,7 @@ async function openDeleteConfirm(entry) {
       :weather="selectedWeather"
       :fatigue-score="selectedFatigue"
       :fatigue-threshold="FATIGUE_THRESHOLD"
+      :is-today="selectedDateKey === TODAY_DATE_KEY"
       @add-plan="openCreateModal"
       @edit-entry="openEditModal"
       @confirm-entry="openConfirmModal"

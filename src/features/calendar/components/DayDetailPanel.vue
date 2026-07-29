@@ -9,6 +9,7 @@ defineProps({
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
   fatigueThreshold: { type: Number, required: true },
+  isToday: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry', 'delete-entry'])
@@ -45,7 +46,7 @@ const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry', 'delete-ent
       </div>
       <div class="flex shrink-0 gap-2 text-xs">
         <button
-          v-if="entry.status !== 'settled'"
+          v-if="entry.status !== 'settled' && !isToday"
           type="button"
           class="text-[#6B6A65] underline"
           @click="emit('edit-entry', entry)"
@@ -53,7 +54,7 @@ const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry', 'delete-ent
           수정하기
         </button>
         <button
-          v-if="entry.status === 'planned'"
+          v-if="entry.status === 'planned' && isToday"
           type="button"
           class="text-[#E0B400] underline"
           @click="emit('confirm-entry', entry)"

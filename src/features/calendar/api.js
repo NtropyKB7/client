@@ -9,7 +9,10 @@ export const FATIGUE_THRESHOLD = 65
 
 export const MONTH_SUMMARY_TARGET = { hours: 40, income: 2000000 }
 
-// "오늘"을 2026-07-16으로 가정하고, 이후 7일(07-16~07-22)치 날씨만 mock으로 채운다.
+// "오늘"을 2026-07-16으로 가정한다(실제 백엔드 연동 전까지 고정).
+export const TODAY_DATE_KEY = '2026-07-16'
+
+// 이후 7일(07-16~07-22)치 날씨만 mock으로 채운다.
 // TODO: 외부 날씨 API 연동 후 이 mock을 실제 예보 데이터로 교체.
 const WEATHER_BY_DATE = {
   '2026-07-16': { icon: '☁️', label: '비·우천 할증' },
