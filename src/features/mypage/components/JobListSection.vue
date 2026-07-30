@@ -1,9 +1,11 @@
 <!-- src/features/mypage/components/JobListSection.vue -->
 <script setup>
+import { ref } from 'vue'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import JobCard from '@/shared/components/JobCard.vue'
 
 const onboardingStore = useOnboardingStore()
+const lastAddedJobId = ref(null)
 
 function updateJob(index, updated) {
   const next = onboardingStore.jobs.map((job, i) => (i === index ? updated : job))
@@ -16,10 +18,10 @@ function removeJob(index) {
 }
 
 function addJob() {
+  const id = `custom-${Date.now()}`
   const next = [
-    ...onboardingStore.jobs,
     {
-      id: `custom-${Date.now()}`,
+      id,
       name: '새 잡',
       incomeMethodLabel: '건당 정산',
       incomeAmount: 0,
@@ -30,8 +32,10 @@ function addJob() {
       endTime: '',
       category: 'other',
     },
+    ...onboardingStore.jobs,
   ]
   onboardingStore.setJobs(next)
+  lastAddedJobId.value = id
 }
 
 function handleEditIncome(job) {
@@ -55,6 +59,7 @@ function handleEditIncome(job) {
         v-for="(job, index) in onboardingStore.jobs"
         :key="job.id"
         :job="job"
+        :start-in-edit="job.id === lastAddedJobId"
         @save="(updated) => updateJob(index, updated)"
         @edit-income="handleEditIncome"
         @delete="removeJob(index)"
