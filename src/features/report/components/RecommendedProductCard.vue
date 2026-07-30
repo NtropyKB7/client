@@ -1,5 +1,6 @@
 <script setup>
 import { formatMan } from '../utils'
+import Button from '@/shared/components/Button.vue'
 
 defineProps({
   name: { type: String, required: true },
@@ -28,13 +29,7 @@ defineEmits(['subscribe'])
       <p class="mt-1 text-xs text-[#6B6A65]">
         가용자금 {{ formatMan(availableFunds, false) }}원 중 ...
       </p>
-      <button
-        type="button"
-        class="mt-3 w-full rounded-lg bg-[#111110] py-3 text-sm font-semibold text-white"
-        @click="$emit('subscribe')"
-      >
-        구독하러가기
-      </button>
+      <Button class="mt-3" @click="$emit('subscribe')">구독하러가기</Button>
     </template>
   </div>
 </template>
