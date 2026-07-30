@@ -1,6 +1,6 @@
 <!-- src/features/mypage/components/AccountsManageSection.vue -->
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import BankPickerModal from '@/features/onboarding/components/BankPickerModal.vue'
@@ -37,11 +37,15 @@ async function pickBank(row) {
   }
 }
 
+const isValid = computed(
+  () =>
+    accountForms.value.length > 0 &&
+    accountForms.value.every((row) => row.bank && /^\d{10,16}$/.test(row.number)),
+)
+
 function save() {
-  const validRows = accountForms.value
-    .filter((row) => row.bank && row.number)
-    .map((row) => ({ ...row }))
-  onboardingStore.setAccounts(validRows)
+  if (!isValid.value) return
+  onboardingStore.setAccounts(accountForms.value.map((row) => ({ ...row })))
 }
 </script>
 
@@ -94,6 +98,6 @@ function save() {
       </button>
     </div>
 
-    <Button @click="save">저장</Button>
+    <Button :disabled="!isValid" @click="save">저장</Button>
   </div>
 </template>
