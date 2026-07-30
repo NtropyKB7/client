@@ -29,9 +29,9 @@ const MOCK_SUBSCRIPTION = {
   autoRenew: true,
   paymentMethod: { label: '신한 카드', maskedNumber: '**** 1111' },
   billingHistory: [
-    { id: 'bill-1', label: 'Pro 정기결제', date: '2026-08-16', amount: 4900 },
-    { id: 'bill-2', label: 'Pro 정기결제', date: '2026-07-16', amount: 4900 },
-    { id: 'bill-3', label: 'Pro 정기결제', date: '2026-06-16', amount: 4900 },
+    { id: 'bill-1', label: 'Pro 정기결제', date: '2026-07-16', amount: 4900 },
+    { id: 'bill-2', label: 'Pro 정기결제', date: '2026-06-16', amount: 4900 },
+    { id: 'bill-3', label: 'Pro 정기결제', date: '2026-05-16', amount: 4900 },
   ],
 }
 
