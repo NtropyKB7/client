@@ -63,7 +63,7 @@ async function handleLogout() {
 
 <template>
   <div class="flex flex-col gap-4 px-4 py-6">
-    <ProfileHeader v-if="subView !== 'subscription' && profile" :profile="profile" />
+    <ProfileHeader v-if="profile" :profile="profile" />
 
     <template v-if="subView === 'main'">
       <SubscriptionSummaryCard
