@@ -38,40 +38,56 @@ onUnmounted(() => {
     >
       <div
         v-if="modalStore.isOpen"
-        class="fixed inset-0 z-50 flex bg-black/40"
+        class="fixed inset-0 z-50 flex"
         :class="
-          modalStore.position === 'bottom'
-            ? 'items-end justify-center'
-            : 'items-center justify-center'
+          modalStore.position === 'full'
+            ? ''
+            : modalStore.position === 'bottom'
+              ? 'items-end justify-center bg-black/40'
+              : 'items-center justify-center bg-black/40'
         "
-        @click.self="modalStore.close()"
+        @click.self="modalStore.position === 'full' ? undefined : modalStore.close()"
       >
         <Transition
           appear
           :enter-active-class="
-            modalStore.position === 'bottom'
-              ? 'transition duration-200 ease-out'
-              : 'transition duration-150 ease-out'
+            modalStore.position === 'full'
+              ? 'transition duration-150 ease-out'
+              : modalStore.position === 'bottom'
+                ? 'transition duration-200 ease-out'
+                : 'transition duration-150 ease-out'
           "
           :enter-from-class="
-            modalStore.position === 'bottom' ? 'translate-y-full' : 'scale-95 opacity-0'
+            modalStore.position === 'full'
+              ? 'translate-x-full'
+              : modalStore.position === 'bottom'
+                ? 'translate-y-full'
+                : 'scale-95 opacity-0'
           "
           :leave-active-class="
-            modalStore.position === 'bottom'
+            modalStore.position === 'full'
               ? 'transition duration-150 ease-in'
-              : 'transition duration-100 ease-in'
+              : modalStore.position === 'bottom'
+                ? 'transition duration-150 ease-in'
+                : 'transition duration-100 ease-in'
           "
           :leave-to-class="
-            modalStore.position === 'bottom' ? 'translate-y-full' : 'scale-95 opacity-0'
+            modalStore.position === 'full'
+              ? 'translate-x-full'
+              : modalStore.position === 'bottom'
+                ? 'translate-y-full'
+                : 'scale-95 opacity-0'
           "
         >
           <div
             v-if="modalStore.isOpen"
-            class="relative w-full bg-white"
+            class="relative bg-white"
             :class="
-              modalStore.position === 'bottom'
-                ? 'max-w-sm rounded-t-2xl p-6 pb-8'
-                : 'mx-4 max-w-sm rounded-2xl border border-[#111110]/20 p-6'
+              modalStore.position === 'full'
+                ? 'h-full w-full overflow-y-auto'
+                : modalStore.position === 'bottom'
+                  ? 'w-full max-w-sm rounded-t-2xl p-6 pb-8'
+                  : 'mx-4 w-full max-w-sm rounded-2xl border border-[#111110]/20 p-6'
             "
           >
             <div
@@ -79,6 +95,7 @@ onUnmounted(() => {
               class="mx-auto mb-4 h-1 w-9 rounded-full bg-[#111110]/15"
             />
             <button
+              v-if="modalStore.position !== 'full'"
               type="button"
               class="absolute right-4 top-4 text-[#6B6A65]"
               aria-label="닫기"
