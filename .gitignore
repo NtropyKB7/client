@@ -28,14 +28,12 @@ coverage
 
 .eslintcache
 
-# Cypress
-/cypress/videos/
-/cypress/screenshots/
-
-# Vitest
-__screenshots__/
-
 # Vite
 *.timestamp-*-*.mjs
 
 .env
+
+# Local tooling (not shared via git)
+.claude
+.impeccable
+docs
