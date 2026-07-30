@@ -19,6 +19,15 @@ defineEmits(['select'])
       <BellIcon class="h-6 w-6 text-[#111110]" />
     </div>
 
+    <div class="flex flex-col gap-1">
+      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B6A65]">Monthly report</p>
+      <div class="flex items-center gap-2">
+        <ReportIcon class="h-8 w-8 text-[#111110]" />
+        <h2 class="text-xl font-bold tracking-tight text-[#111110]">월별 리포트</h2>
+      </div>
+      <p class="mt-1 text-xs text-[#6B6A65]">월별 소득 관리를 돌아보기 위한 핵심이 요약된 리포트</p>
+    </div>
+
     <div class="flex flex-col gap-3">
       <div
         v-for="report in reports"
