@@ -1,3 +1,4 @@
+<!-- src/features/mypage/components/ProfileHeader.vue -->
 <script setup>
 defineProps({
   profile: { type: Object, required: true },
