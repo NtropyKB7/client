@@ -1,5 +1,5 @@
 import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay } from '@/shared/api/mockDelay'
+import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
 
 export const GREETING_NAME = '동현'
 
@@ -149,7 +149,7 @@ export const SEED_ENTRIES_2026_07 = [
 ]
 
 export async function fetchCalendarMonth({ year, month }) {
-  if (import.meta.env.DEV) {
+  if (shouldUseMock()) {
     await mockDelay()
     if (year === 2026 && month === 7) {
       return {

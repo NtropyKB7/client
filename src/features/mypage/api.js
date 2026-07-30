@@ -1,5 +1,5 @@
 import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay } from '@/shared/api/mockDelay'
+import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
 
 const MOCK_PROFILE = {
   name: '김동현',
@@ -53,7 +53,7 @@ const MOCK_NOTIFICATIONS = [
 ]
 
 export async function fetchProfile() {
-  if (import.meta.env.DEV) {
+  if (shouldUseMock()) {
     await mockDelay()
     return MOCK_PROFILE // TODO: 백엔드 사용자 프로필 API 연동 후 이 분기 제거
   }
@@ -62,7 +62,7 @@ export async function fetchProfile() {
 }
 
 export async function fetchSubscription() {
-  if (import.meta.env.DEV) {
+  if (shouldUseMock()) {
     await mockDelay()
     return MOCK_SUBSCRIPTION // TODO: 백엔드 구독/결제 API 연동 후 이 분기 제거
   }
@@ -71,7 +71,7 @@ export async function fetchSubscription() {
 }
 
 export async function fetchNotifications() {
-  if (import.meta.env.DEV) {
+  if (shouldUseMock()) {
     await mockDelay()
     return MOCK_NOTIFICATIONS // TODO: 백엔드 알림 이력 API 연동 후 이 분기 제거
   }
