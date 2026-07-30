@@ -40,7 +40,7 @@ export const useMypageStore = defineStore('mypage', () => {
   }
 
   function removeNotification(id) {
-    notifications.value = notifications.value.filter((item) => item.id !== id)
+    notifications.value = (notifications.value ?? []).filter((item) => item.id !== id)
     persist()
   }
 
@@ -56,6 +56,12 @@ export const useMypageStore = defineStore('mypage', () => {
     persist()
   }
 
+  function reset() {
+    notifications.value = null
+    planId.value = null
+    persist()
+  }
+
   return {
     notifications,
     planId,
@@ -63,5 +69,6 @@ export const useMypageStore = defineStore('mypage', () => {
     removeNotification,
     initPlan,
     setPlan,
+    reset,
   }
 })
