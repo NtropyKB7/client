@@ -1,4 +1,4 @@
-<!-- CancelSubscriptionConfirmModal.vue -->
+<!-- src/features/mypage/components/CancelSubscriptionConfirmModal.vue -->
 <script setup>
 import { useModalStore } from '@/shared/store/modal'
 import Button from '@/shared/components/Button.vue'
