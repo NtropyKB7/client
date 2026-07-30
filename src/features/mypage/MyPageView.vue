@@ -53,11 +53,11 @@ function openPlanModal() {
   modalStore.open(SubscriptionPlanModal, { subscription: subscription.value }, { position: 'full' })
 }
 
-function handleLogout() {
+async function handleLogout() {
+  await router.push({ name: 'login' })
   onboardingStore.reset()
   mypageStore.reset()
   authStore.logout()
-  router.push({ name: 'login' })
 }
 </script>
 
