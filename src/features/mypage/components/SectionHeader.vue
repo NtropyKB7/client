@@ -1,3 +1,4 @@
+<!-- src/features/mypage/components/SectionHeader.vue -->
 <script setup>
 import BackLink from './BackLink.vue'
 

@@ -1,3 +1,4 @@
+<!-- src/features/mypage/components/BackLink.vue -->
 <script setup>
 import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
 
