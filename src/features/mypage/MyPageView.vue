@@ -1,98 +1,100 @@
+<!-- src/features/mypage/MyPageView.vue -->
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuery } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
 import { useAuthStore } from '@/features/auth/store'
 import { useOnboardingStore } from '@/features/onboarding/store'
-import TestModal from './TestModal.vue'
-import JobCard from '@/shared/components/JobCard.vue'
-import Button from '@/shared/components/Button.vue'
-import StatCard from '@/shared/components/StatCard.vue'
-import Container from '@/shared/components/Container.vue'
+import { useMypageStore } from './store'
+import { fetchProfile, fetchSubscription, PLAN_OPTIONS } from './api'
+import ProfileHeader from './components/ProfileHeader.vue'
+import JobListSection from './components/JobListSection.vue'
+import SubscriptionSummaryCard from './components/SubscriptionSummaryCard.vue'
+import MenuList from './components/MenuList.vue'
+import AccountsManageSection from './components/AccountsManageSection.vue'
+import NotificationsManageSection from './components/NotificationsManageSection.vue'
+import PermissionsManageSection from './components/PermissionsManageSection.vue'
+import SubscriptionStatusSection from './components/SubscriptionStatusSection.vue'
+import SubscriptionPlanModal from './components/SubscriptionPlanModal.vue'
+import AppInfoSection from './components/AppInfoSection.vue'
 
 const router = useRouter()
 const modalStore = useModalStore()
 const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
+const mypageStore = useMypageStore()
+
+const subView = ref('main')
+
+const { data: profile } = useQuery({
+  queryKey: ['mypage', 'profile'],
+  queryFn: fetchProfile,
+})
+
+const { data: subscription } = useQuery({
+  queryKey: ['mypage', 'subscription'],
+  queryFn: fetchSubscription,
+})
+
+watch(subscription, (value) => {
+  if (value) mypageStore.initPlan(value.planId)
+})
+
+const currentPlanLabel = computed(
+  () => PLAN_OPTIONS.find((plan) => plan.id === mypageStore.planId)?.name ?? 'Pro',
+)
+
+function goBackToMain() {
+  subView.value = 'main'
+}
+
+function openPlanModal() {
+  modalStore.open(SubscriptionPlanModal, { subscription: subscription.value }, { position: 'full' })
+}
 
 function handleLogout() {
   onboardingStore.reset()
+  mypageStore.reset()
   authStore.logout()
   router.push({ name: 'login' })
-}
-
-function openTestModal() {
-  modalStore.open(TestModal)
-}
-
-function openBottomSheetTest() {
-  modalStore.open(TestModal, {}, { position: 'bottom' })
-}
-
-const demoJob = ref({
-  id: 'job-1',
-  name: '배달',
-  incomeMethodLabel: '건당 정산',
-  incomeAmount: 0,
-  fatigue: 3,
-  isRegular: true,
-  workDays: ['화', '금'],
-  startTime: '11:00',
-  endTime: '15:00',
-})
-
-function updateDemoJob(updated) {
-  demoJob.value = updated
-}
-
-function handleEditIncome(job) {
-  // TEMP: 소득방식·금액 수정 바텀시트는 별도 태스크에서 구현 예정. 지금은 콘솔 확인용.
-  console.log('edit-income requested', job)
 }
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 p-4">
-    <Button variant="outline" @click="handleLogout">로그아웃</Button>
+  <div class="flex flex-col gap-4 px-4 py-6">
+    <ProfileHeader v-if="subView !== 'subscription' && profile" :profile="profile" />
 
-    <h1 class="text-xl font-bold">마이페이지</h1>
+    <template v-if="subView === 'main'">
+      <SubscriptionSummaryCard
+        v-if="subscription"
+        :subscription="subscription"
+        :plan-label="currentPlanLabel"
+        @open-status="subView = 'subscription'"
+      />
 
-    <!-- TEMP: 공용 컴포넌트 동작 확인용 임시 데모 영역.
-         온보딩/홈 화면이 실제 소비처가 되면(다음 계획) 이 블록 전체를 삭제할 것. -->
-    <div class="flex flex-col gap-4 rounded-xl border border-dashed border-[#111110]/20 p-4">
-      <p class="text-xs font-semibold text-[#6B6A65]">컴포넌트 데모 (임시)</p>
+      <JobListSection />
 
-      <div class="flex gap-2">
-        <Button @click="openTestModal">중앙 모달 테스트</Button>
-        <Button variant="outline" @click="openBottomSheetTest">바텀시트 테스트</Button>
-      </div>
+      <MenuList @select="(id) => (subView = id)" />
 
-      <JobCard :job="demoJob" @save="updateDemoJob" @edit-income="handleEditIncome" />
-
-      <StatCard
-        title="목표 달성율"
-        value="78% (195만원)"
-        :progress-percent="78"
-        badge-label="주의"
-        badge-class="bg-amber-100 text-amber-700"
+      <button
+        type="button"
+        class="mt-2 text-left text-sm font-medium text-rose-600"
+        @click="handleLogout"
       >
-        <template #detail>목표 250만원 중 195만원 달성</template>
-      </StatCard>
+        로그아웃
+      </button>
+    </template>
 
-      <div class="rounded-xl border border-[#111110]/10 bg-white px-4">
-        <Container clickable>
-          <p class="text-sm text-[#111110]">연동 계좌 관리</p>
-          <template #trailing>
-            <span class="text-xs text-[#6B6A65]">&gt;</span>
-          </template>
-        </Container>
-        <Container clickable>
-          <p class="text-sm text-[#111110]">알림 이력 관리</p>
-          <template #trailing>
-            <span class="text-xs text-[#6B6A65]">&gt;</span>
-          </template>
-        </Container>
-      </div>
-    </div>
+    <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
+    <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
+    <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
+    <SubscriptionStatusSection
+      v-else-if="subView === 'subscription' && subscription"
+      :subscription="subscription"
+      @back="goBackToMain"
+      @open-plan-modal="openPlanModal"
+    />
+    <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
   </div>
 </template>
