@@ -8,6 +8,7 @@ const DAYS = ['일', '월', '화', '수', '목', '금', '토']
 
 const props = defineProps({
   job: { type: Object, required: true },
+  startInEdit: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['save', 'edit-income', 'delete'])
@@ -27,7 +28,7 @@ function cloneJob(job) {
   }
 }
 
-const isEditing = ref(false)
+const isEditing = ref(props.startInEdit)
 const draft = ref(cloneJob(props.job))
 
 const summaryFatigueLabel = computed(() => FATIGUE_LABELS[props.job.fatigue - 1])
