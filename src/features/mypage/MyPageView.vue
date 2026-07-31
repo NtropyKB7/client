@@ -1,7 +1,7 @@
 <!-- src/features/mypage/MyPageView.vue -->
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
 import { useAuthStore } from '@/features/auth/store'
@@ -19,13 +19,14 @@ import SubscriptionStatusSection from './components/SubscriptionStatusSection.vu
 import SubscriptionPlanModal from './components/SubscriptionPlanModal.vue'
 import AppInfoSection from './components/AppInfoSection.vue'
 
+const route = useRoute()
 const router = useRouter()
 const modalStore = useModalStore()
 const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
 const mypageStore = useMypageStore()
 
-const subView = ref('main')
+const subView = ref(route.query.view === 'subscription' ? 'subscription' : 'main')
 
 const { data: profile } = useQuery({
   queryKey: ['mypage', 'profile'],

@@ -77,6 +77,8 @@ async function openCancelConfirm() {
       </div>
     </div>
 
-    <Button variant="danger" @click="openCancelConfirm">해지 예약하기</Button>
+    <Button v-if="currentPlan.id !== 'basic'" variant="danger" @click="openCancelConfirm">
+      해지 예약하기
+    </Button>
   </div>
 </template>

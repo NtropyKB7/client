@@ -55,7 +55,7 @@ function backToList() {
 }
 
 function goToSubscription() {
-  router.push({ name: 'mypage' })
+  router.push({ name: 'mypage', query: { view: 'subscription' } })
 }
 </script>
 
