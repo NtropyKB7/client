@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 const MOCK_DASHBOARD = {
   greetingName: '동현',
@@ -50,10 +49,5 @@ const MOCK_DASHBOARD = {
 }
 
 export async function fetchDashboard() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_DASHBOARD // TODO: 백엔드 최적화 엔진 결과 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/home/dashboard')
-  return data
+  return requestWithMock(MOCK_DASHBOARD, (client) => client.get('/home/dashboard'))
 }

@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 export const GREETING_NAME = '동현'
 
@@ -147,17 +146,12 @@ export const SEED_ENTRIES_2026_07 = [
 ]
 
 export async function fetchCalendarMonth({ year, month }) {
-  if (shouldUseMock()) {
-    await mockDelay()
-    if (year === 2026 && month === 7) {
-      return {
-        weatherByDate: WEATHER_BY_DATE,
-        summaryTarget: MONTH_SUMMARY_TARGET,
-      }
-    }
-    // TODO: 백엔드 연동 후 이 분기 제거(모든 달이 실제 데이터를 반환)
-    return { weatherByDate: {}, summaryTarget: MONTH_SUMMARY_TARGET }
-  }
-  const { data } = await axiosInstance.get('/calendar/month', { params: { year, month } })
-  return data
+  const mockConfig =
+    year === 2026 && month === 7
+      ? { weatherByDate: WEATHER_BY_DATE, summaryTarget: MONTH_SUMMARY_TARGET }
+      : { weatherByDate: {}, summaryTarget: MONTH_SUMMARY_TARGET }
+  // TODO: 백엔드 연동 후 mockConfig의 연/월 분기 제거(모든 달이 실제 데이터를 반환)
+  return requestWithMock(mockConfig, (client) =>
+    client.get('/calendar/month', { params: { year, month } }),
+  )
 }

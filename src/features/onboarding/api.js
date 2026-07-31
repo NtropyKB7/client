@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 export const BANK_LIST = [
   'KB국민은행',
@@ -54,12 +53,7 @@ const MOCK_DETECTED_JOBS = [
 ]
 
 export async function fetchDetectedJobs() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_DETECTED_JOBS // TODO: 백엔드 입출금 내역 기반 잡 자동추정 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/onboarding/detected-jobs')
-  return data
+  return requestWithMock(MOCK_DETECTED_JOBS, (client) => client.get('/onboarding/detected-jobs'))
 }
 
 /**
