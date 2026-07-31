@@ -7,7 +7,7 @@ import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
 const router = useRouter()
 
 function goToSubscription() {
-  router.push({ name: 'mypage' })
+  router.push({ name: 'mypage', query: { view: 'subscription' } })
 }
 </script>
 

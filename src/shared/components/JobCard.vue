@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import Button from './Button.vue'
 import CategoryPickerModal from './CategoryPickerModal.vue'
 import IncomeMethodPickerModal from './IncomeMethodPickerModal.vue'
+import DeleteJobConfirmModal from './DeleteJobConfirmModal.vue'
 import { useModalStore } from '@/shared/store/modal'
 import { getJobCategory } from '@/shared/utils/jobCategory'
 
@@ -101,8 +102,11 @@ function cancelEdit() {
   isEditing.value = false
 }
 
-function requestDelete() {
-  emit('delete')
+async function requestDelete() {
+  const confirmed = await modalStore.open(DeleteJobConfirmModal, {}, { position: 'center' })
+  if (confirmed) {
+    emit('delete')
+  }
 }
 </script>
 
