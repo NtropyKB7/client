@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { useAuthStore } from '@/features/auth/store'
+import { useToastStore } from '@/shared/store/toast'
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -37,6 +38,9 @@ axiosInstance.interceptors.response.use(
       }
       authStore.logout()
     }
+
+    const toastStore = useToastStore()
+    toastStore.show(error.response?.data?.message ?? '요청 처리 중 오류가 발생했어요.')
 
     return Promise.reject(error)
   },
