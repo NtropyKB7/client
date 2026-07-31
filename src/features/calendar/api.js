@@ -3,8 +3,6 @@ import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
 
 export const GREETING_NAME = '동현'
 
-export const DEFENSE_MODE_DATES = ['2026-07-08', '2026-07-09', '2026-07-10']
-
 export const FATIGUE_THRESHOLD = 65
 
 export const MONTH_SUMMARY_TARGET = { hours: 40, income: 2000000 }
@@ -153,13 +151,12 @@ export async function fetchCalendarMonth({ year, month }) {
     await mockDelay()
     if (year === 2026 && month === 7) {
       return {
-        defenseModeDates: DEFENSE_MODE_DATES,
         weatherByDate: WEATHER_BY_DATE,
         summaryTarget: MONTH_SUMMARY_TARGET,
       }
     }
     // TODO: 백엔드 연동 후 이 분기 제거(모든 달이 실제 데이터를 반환)
-    return { defenseModeDates: [], weatherByDate: {}, summaryTarget: MONTH_SUMMARY_TARGET }
+    return { weatherByDate: {}, summaryTarget: MONTH_SUMMARY_TARGET }
   }
   const { data } = await axiosInstance.get('/calendar/month', { params: { year, month } })
   return data
