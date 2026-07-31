@@ -1,7 +1,11 @@
+<!-- src/shared/components/JobCard.vue -->
 <script setup>
 import { computed, ref } from 'vue'
 import Button from './Button.vue'
-import { JOB_CATEGORIES, getJobCategory } from '@/shared/utils/jobCategory'
+import CategoryPickerModal from './CategoryPickerModal.vue'
+import IncomeMethodPickerModal from './IncomeMethodPickerModal.vue'
+import { useModalStore } from '@/shared/store/modal'
+import { getJobCategory } from '@/shared/utils/jobCategory'
 
 const FATIGUE_LABELS = ['매우 가벼움', '가벼움', '보통', '힘듦', '매우 힘듦']
 const DAYS = ['일', '월', '화', '수', '목', '금', '토']
@@ -11,7 +15,9 @@ const props = defineProps({
   startInEdit: { type: Boolean, default: false },
 })
 
-const emit = defineEmits(['save', 'edit-income', 'delete'])
+const emit = defineEmits(['save', 'delete'])
+
+const modalStore = useModalStore()
 
 function cloneJob(job) {
   return {
@@ -30,9 +36,15 @@ function cloneJob(job) {
 
 const isEditing = ref(props.startInEdit)
 const draft = ref(cloneJob(props.job))
+const hasSavedOnce = ref(false)
 
 const summaryFatigueLabel = computed(() => FATIGUE_LABELS[props.job.fatigue - 1])
 const draftFatigueLabel = computed(() => FATIGUE_LABELS[draft.value.fatigue - 1])
+const draftCategoryLabel = computed(() => getJobCategory(draft.value.category).label)
+
+const saveButtonLabel = computed(() =>
+  props.startInEdit && !hasSavedOnce.value ? '추가' : '저장',
+)
 
 function startEdit() {
   draft.value = cloneJob(props.job)
@@ -52,13 +64,41 @@ function toggleRegular() {
   draft.value.isRegular = !draft.value.isRegular
 }
 
+async function pickCategory() {
+  const selected = await modalStore.open(
+    CategoryPickerModal,
+    { selected: draft.value.category },
+    { position: 'bottom' },
+  )
+  if (selected) {
+    draft.value.category = selected
+  }
+}
+
+async function pickIncomeMethod() {
+  const selected = await modalStore.open(
+    IncomeMethodPickerModal,
+    { selected: draft.value.incomeMethodLabel },
+    { position: 'bottom' },
+  )
+  if (selected) {
+    draft.value.incomeMethodLabel = selected
+  }
+}
+
 function save() {
   emit('save', cloneJob(draft.value))
+  hasSavedOnce.value = true
   isEditing.value = false
 }
 
-function requestIncomeEdit() {
-  emit('edit-income', cloneJob(props.job))
+function cancelEdit() {
+  if (props.startInEdit && !hasSavedOnce.value) {
+    emit('delete')
+    return
+  }
+  draft.value = cloneJob(props.job)
+  isEditing.value = false
 }
 
 function requestDelete() {
@@ -74,16 +114,8 @@ function requestDelete() {
         <div class="min-w-0 flex-1">
           <p class="text-sm font-semibold text-[#111110]">{{ job.name }}</p>
           <p class="text-xs text-[#6B6A65]">
-            {{ job.incomeMethodLabel }} ({{ job.incomeAmount.toLocaleString() }}원)
+            {{ job.incomeMethodLabel }} : {{ job.incomeAmount.toLocaleString() }}원
           </p>
-        </div>
-        <div class="flex shrink-0 items-center gap-2">
-          <button type="button" class="text-xs text-[#6B6A65] underline" @click="startEdit">
-            수정
-          </button>
-          <button type="button" class="text-xs text-[#6B6A65] underline" @click="requestDelete">
-            삭제
-          </button>
         </div>
       </div>
       <p class="mt-2 text-xs text-[#6B6A65]">
@@ -92,17 +124,54 @@ function requestDelete() {
           · {{ job.workDays.join(', ') }} {{ job.startTime }}~{{ job.endTime }}
         </template>
       </p>
+
+      <div class="mt-4 flex gap-2">
+        <div class="flex-1">
+          <Button variant="outline" @click="startEdit">수정</Button>
+        </div>
+        <div class="flex-1">
+          <Button variant="danger" @click="requestDelete">삭제</Button>
+        </div>
+      </div>
     </template>
 
     <template v-else>
       <div class="flex items-center gap-3">
         <div class="h-10 w-10 shrink-0 rounded-full bg-[#F3F1EC]" />
-        <p class="text-sm font-semibold text-[#111110]">{{ draft.name }}</p>
+        <input
+          v-model="draft.name"
+          type="text"
+          placeholder="잡 이름 입력"
+          class="min-w-0 flex-1 rounded-lg border border-[#111110]/20 px-3 py-2 text-sm"
+        />
       </div>
 
-      <p class="mt-3 text-xs text-[#6B6A65]">
-        소득 방식 : {{ draft.incomeMethodLabel }} ({{ draft.incomeAmount.toLocaleString() }}원)
-      </p>
+      <button
+        type="button"
+        class="mt-3 flex w-full items-center justify-between rounded-lg border border-[#111110]/20 px-3 py-2 text-left text-sm"
+        @click="pickCategory"
+      >
+        <span :class="draft.category ? 'text-[#111110]' : 'text-[#8A8778]'">
+          {{ draft.category ? draftCategoryLabel : '잡 카테고리 선택' }}
+        </span>
+      </button>
+
+      <p class="mt-3 text-xs text-[#6B6A65]">소득</p>
+      <button
+        type="button"
+        class="mt-1 flex w-full items-center justify-between rounded-lg border border-[#111110]/20 px-3 py-2 text-left text-sm"
+        @click="pickIncomeMethod"
+      >
+        <span :class="draft.incomeMethodLabel ? 'text-[#111110]' : 'text-[#8A8778]'">
+          {{ draft.incomeMethodLabel || '소득 방식 선택(건당/시급/월 정산)' }}
+        </span>
+      </button>
+      <input
+        v-model.number="draft.incomeAmount"
+        type="number"
+        placeholder="금액 입력(건당 얼마/시급 얼마)"
+        class="mt-2 w-full rounded-lg border border-[#111110]/20 px-3 py-2 text-sm"
+      />
 
       <p class="mt-3 text-xs text-[#6B6A65]">노동 피로도 (1~5)</p>
       <div class="mt-1 flex gap-2">
@@ -122,24 +191,6 @@ function requestDelete() {
         </button>
       </div>
       <p class="mt-1 text-xs text-[#E0B400]">{{ draftFatigueLabel }}</p>
-
-      <p class="mt-3 text-xs text-[#6B6A65]">잡 카테고리</p>
-      <div class="mt-1 flex gap-2">
-        <button
-          v-for="category in JOB_CATEGORIES"
-          :key="category.value"
-          type="button"
-          class="h-9 flex-1 rounded-lg border text-xs font-medium"
-          :class="
-            draft.category === category.value
-              ? 'border-[#E0B400] text-[#E0B400]'
-              : 'border-[#111110]/10 text-[#6B6A65]'
-          "
-          @click="draft.category = category.value"
-        >
-          {{ category.label }}
-        </button>
-      </div>
 
       <div class="mt-3 flex items-center justify-between">
         <p class="text-sm text-[#111110]">정기 근무</p>
@@ -203,10 +254,10 @@ function requestDelete() {
 
       <div class="mt-4 flex gap-2">
         <div class="flex-1">
-          <Button variant="outline" @click="requestIncomeEdit">기본 소득 수정</Button>
+          <Button variant="outline" @click="cancelEdit">취소</Button>
         </div>
         <div class="flex-1">
-          <Button @click="save">저장</Button>
+          <Button @click="save">{{ saveButtonLabel }}</Button>
         </div>
       </div>
     </template>
