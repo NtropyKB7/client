@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
 import { calculateAchievableRange } from './api'
 import RangeSlider from './components/RangeSlider.vue'
+import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
@@ -29,6 +30,8 @@ function submit() {
 
 <template>
   <div class="flex min-h-screen flex-col gap-8 bg-[#F3F1EC] px-6 py-10">
+    <OnboardingProgressBar :current-step="3" step-label="저축목표 설정" />
+
     <div>
       <h1 class="text-lg font-semibold text-[#111110]">저축목표 설정</h1>
       <p class="mt-1 text-xs text-[#6B6A65]">

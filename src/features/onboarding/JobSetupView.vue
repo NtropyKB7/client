@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useOnboardingStore } from './store'
 import { fetchDetectedJobs } from './api'
 import JobCard from '@/shared/components/JobCard.vue'
+import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
@@ -55,6 +56,8 @@ function submit() {
 
 <template>
   <div class="flex min-h-screen flex-col gap-6 bg-[#F3F1EC] px-6 py-10">
+    <OnboardingProgressBar :current-step="2" step-label="잡(Job) 등록" />
+
     <div>
       <h1 class="text-lg font-semibold text-[#111110]">직업(Job) 등록</h1>
       <p class="mt-1 text-xs text-[#6B6A65]">
