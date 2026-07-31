@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
 import { useModalStore } from '@/shared/store/modal'
 import BankPickerModal from './components/BankPickerModal.vue'
+import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
@@ -50,6 +51,8 @@ function submit() {
 
 <template>
   <div class="flex min-h-screen flex-col gap-6 bg-[#F3F1EC] px-6 py-10">
+    <OnboardingProgressBar :current-step="1" step-label="계좌 설정" />
+
     <div>
       <h1 class="text-lg font-semibold text-[#111110]">계좌 설정</h1>
       <p class="mt-1 text-xs text-[#6B6A65]">마이데이터 연동을 위해 계좌를 등록해 주세요.</p>
