@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 export const CATEGORY_COLORS = ['bg-amber-500', 'bg-blue-500', 'bg-violet-500']
 
@@ -30,19 +29,11 @@ const MOCK_REPORT_DETAIL = {
 }
 
 export async function fetchReportList() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_REPORT_LIST // TODO: 백엔드 월별 리포트 목록 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/report/list')
-  return data
+  return requestWithMock(MOCK_REPORT_LIST, (client) => client.get('/report/list'))
 }
 
 export async function fetchReportDetail(month) {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return { month, ...MOCK_REPORT_DETAIL } // TODO: 백엔드 월별 리포트 상세 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/report/detail', { params: { month } })
-  return data
+  return requestWithMock({ month, ...MOCK_REPORT_DETAIL }, (client) =>
+    client.get('/report/detail', { params: { month } }),
+  )
 }
