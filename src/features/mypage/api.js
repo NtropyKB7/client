@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 const MOCK_PROFILE = {
   name: '김동현',
@@ -53,28 +52,13 @@ const MOCK_NOTIFICATIONS = [
 ]
 
 export async function fetchProfile() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_PROFILE // TODO: 백엔드 사용자 프로필 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/mypage/profile')
-  return data
+  return requestWithMock(MOCK_PROFILE, (client) => client.get('/mypage/profile'))
 }
 
 export async function fetchSubscription() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_SUBSCRIPTION // TODO: 백엔드 구독/결제 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/mypage/subscription')
-  return data
+  return requestWithMock(MOCK_SUBSCRIPTION, (client) => client.get('/mypage/subscription'))
 }
 
 export async function fetchNotifications() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_NOTIFICATIONS // TODO: 백엔드 알림 이력 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/mypage/notifications')
-  return data
+  return requestWithMock(MOCK_NOTIFICATIONS, (client) => client.get('/mypage/notifications'))
 }

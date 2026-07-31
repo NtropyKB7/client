@@ -1,5 +1,4 @@
-import axiosInstance from '@/shared/api/axiosInstance'
-import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
+import { requestWithMock } from '@/shared/api/request'
 
 export const CAUSE_OPTIONS = [
   { id: 'accident', label: '사고' },
@@ -76,10 +75,5 @@ const MOCK_DEFENSE_DATA = {
 }
 
 export async function fetchDefenseModeData() {
-  if (shouldUseMock()) {
-    await mockDelay()
-    return MOCK_DEFENSE_DATA // TODO: 백엔드 위기대응 API 연동 후 이 분기 제거
-  }
-  const { data } = await axiosInstance.get('/defense-mode')
-  return data
+  return requestWithMock(MOCK_DEFENSE_DATA, (client) => client.get('/defense-mode'))
 }
