@@ -47,11 +47,6 @@ function addCustomJob() {
   })
 }
 
-function handleEditIncome(job) {
-  // TEMP: 소득방식·금액 수정 바텀시트는 별도 태스크에서 구현 예정. 지금은 콘솔 확인용.
-  console.log('edit-income requested', job)
-}
-
 function submit() {
   onboardingStore.setJobs(jobs.value)
   router.push({ name: 'onboarding-goal' })
@@ -75,7 +70,6 @@ function submit() {
         :key="job.id"
         :job="job"
         @save="(updated) => updateJob(index, updated)"
-        @edit-income="handleEditIncome"
         @delete="removeJob(index)"
       />
 
