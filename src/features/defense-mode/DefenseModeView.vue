@@ -1,8 +1,10 @@
 <!-- src/features/defense-mode/DefenseModeView.vue -->
 <script setup>
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
+import { useMypageStore } from '@/features/mypage/store'
+import { fetchSubscription } from '@/features/mypage/api'
 import Button from '@/shared/components/Button.vue'
 import { useDefenseModeStore } from './store'
 import { fetchDefenseModeData, CAUSE_OPTIONS } from './api'
@@ -11,11 +13,24 @@ import SurvivalCalculatorCard from './components/SurvivalCalculatorCard.vue'
 import FixedExpenseChecklist from './components/FixedExpenseChecklist.vue'
 import InsuranceClaimChecklist from './components/InsuranceClaimChecklist.vue'
 import DeactivateConfirmModal from './components/DeactivateConfirmModal.vue'
+import SubscriptionRequiredCard from './components/SubscriptionRequiredCard.vue'
 import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 
 const defenseStore = useDefenseModeStore()
 const modalStore = useModalStore()
+const mypageStore = useMypageStore()
+
+const { data: subscription } = useQuery({
+  queryKey: ['mypage', 'subscription'],
+  queryFn: fetchSubscription,
+})
+
+watch(subscription, (value) => {
+  if (value) mypageStore.initPlan(value.planId)
+})
+
+const isSubscribed = computed(() => mypageStore.planId === 'pro')
 
 const { data: defenseData } = useQuery({
   queryKey: ['defense-mode', 'data'],
@@ -58,7 +73,9 @@ async function openDeactivateConfirm() {
       <p class="mt-1 text-xs text-[#6B6A65]">소득 공백 시 자산을 지키는 위기 대응 시스템</p>
     </div>
 
-    <template v-if="defenseStore.isActive">
+    <SubscriptionRequiredCard v-if="!isSubscribed" />
+
+    <template v-else-if="defenseStore.isActive">
       <div class="flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-white">
         <DefenseIcon class="h-5 w-5" />
         <p class="text-sm font-semibold">방어모드 활성 · {{ causeLabel }}</p>
