@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
+import { useDefenseModeStore } from '@/features/defense-mode/store'
 import { useCalendarStore } from './store'
 import { fetchCalendarMonth, FATIGUE_THRESHOLD, GREETING_NAME, TODAY_DATE_KEY } from './api'
 import {
@@ -28,6 +29,14 @@ import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
 const onboardingStore = useOnboardingStore()
 const calendarStore = useCalendarStore()
 const modalStore = useModalStore()
+const defenseModeStore = useDefenseModeStore()
+
+function isDateInDefenseRange(dateKey) {
+  if (!defenseModeStore.isActive || !defenseModeStore.startDate || !defenseModeStore.endDate) {
+    return false
+  }
+  return dateKey >= defenseModeStore.startDate && dateKey <= defenseModeStore.endDate
+}
 
 const currentYear = ref(2026)
 const currentMonth = ref(7)
@@ -45,7 +54,7 @@ const cells = computed(() =>
     if (!date) return null
     const dateKey = formatDateKey(date)
     const dayEntries = calendarStore.entriesForDate(dateKey)
-    const isDefenseMode = monthConfig.value?.defenseModeDates?.includes(dateKey) ?? false
+    const isDefenseMode = isDateInDefenseRange(dateKey)
     return {
       date,
       dateKey,
