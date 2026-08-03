@@ -1,7 +1,7 @@
 <!-- src/features/mypage/components/PermissionsManageSection.vue -->
 <script setup>
 import { onMounted, ref } from 'vue'
-import SectionHeader from './SectionHeader.vue'
+import AppHeader from '@/shared/components/AppHeader.vue'
 import {
   queryPermissionStatus,
   requestGeolocationPermission,
@@ -32,23 +32,19 @@ async function toggleNotification() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <SectionHeader
-      title="권한 관리"
-      description="권한별 설정을 진행할 수 있습니다."
-      @back="$emit('back')"
-    />
+  <div class="flex flex-col">
+    <AppHeader back title="마이페이지" @back="$emit('back')" />
 
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col gap-3 px-4 pt-5 pb-6">
       <div
-        class="flex items-center justify-between rounded-xl border border-[#111110]/10 bg-white px-4 py-4"
+        class="flex items-center justify-between rounded-2xl border border-grey-50 bg-grey-white px-4 py-4"
       >
         <div>
-          <p class="text-sm text-[#111110]">위치 권한</p>
-          <p v-if="locationStatus === 'denied'" class="mt-1 text-[10px] text-[#6B6A65]">
+          <p class="text-body4 text-grey-500">위치 권한</p>
+          <p v-if="locationStatus === 'denied'" class="mt-1 text-[10px] text-grey-300">
             브라우저 설정에서 권한을 허용해 주세요.
           </p>
-          <p v-else-if="locationStatus === 'granted'" class="mt-1 text-[10px] text-[#6B6A65]">
+          <p v-else-if="locationStatus === 'granted'" class="mt-1 text-[10px] text-grey-300">
             브라우저 설정에서만 변경할 수 있어요.
           </p>
         </div>
@@ -58,7 +54,7 @@ async function toggleNotification() {
           :aria-checked="locationStatus === 'granted'"
           :disabled="locationStatus === 'granted'"
           class="relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60"
-          :class="locationStatus === 'granted' ? 'bg-[#111110]' : 'bg-[#111110]/15'"
+          :class="locationStatus === 'granted' ? 'bg-primary-500' : 'bg-grey-100'"
           @click="toggleLocation"
         >
           <span
@@ -69,14 +65,14 @@ async function toggleNotification() {
       </div>
 
       <div
-        class="flex items-center justify-between rounded-xl border border-[#111110]/10 bg-white px-4 py-4"
+        class="flex items-center justify-between rounded-2xl border border-grey-50 bg-grey-white px-4 py-4"
       >
         <div>
-          <p class="text-sm text-[#111110]">알림 권한</p>
-          <p v-if="notificationStatus === 'denied'" class="mt-1 text-[10px] text-[#6B6A65]">
+          <p class="text-body4 text-grey-500">알림 권한</p>
+          <p v-if="notificationStatus === 'denied'" class="mt-1 text-[10px] text-grey-300">
             브라우저 설정에서 권한을 허용해 주세요.
           </p>
-          <p v-else-if="notificationStatus === 'granted'" class="mt-1 text-[10px] text-[#6B6A65]">
+          <p v-else-if="notificationStatus === 'granted'" class="mt-1 text-[10px] text-grey-300">
             브라우저 설정에서만 변경할 수 있어요.
           </p>
         </div>
@@ -86,7 +82,7 @@ async function toggleNotification() {
           :aria-checked="notificationStatus === 'granted'"
           :disabled="notificationStatus === 'granted'"
           class="relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60"
-          :class="notificationStatus === 'granted' ? 'bg-[#111110]' : 'bg-[#111110]/15'"
+          :class="notificationStatus === 'granted' ? 'bg-primary-500' : 'bg-grey-100'"
           @click="toggleNotification"
         >
           <span

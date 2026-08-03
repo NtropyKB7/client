@@ -4,7 +4,7 @@ import { computed, ref } from 'vue'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import BankPickerModal from '@/features/onboarding/components/BankPickerModal.vue'
-import SectionHeader from './SectionHeader.vue'
+import AppHeader from '@/shared/components/AppHeader.vue'
 import Button from '@/shared/components/Button.vue'
 
 defineEmits(['back'])
@@ -50,54 +50,61 @@ function save() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <SectionHeader
-      title="연동 계좌 관리"
-      description="연동된 계좌 수정/삭제 및 추가를 할 수 있습니다."
-      @back="$emit('back')"
-    />
+  <div class="flex flex-col">
+    <AppHeader back title="마이페이지" @back="$emit('back')" />
 
-    <div class="flex flex-col gap-3">
+    <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
       <div
         v-for="(row, index) in accountForms"
         :key="index"
-        class="flex flex-col gap-2 rounded-xl border border-[#111110]/10 bg-white p-4"
+        class="flex flex-col gap-4 rounded-[20px] border border-grey-50 bg-grey-white p-4"
       >
-        <button
-          type="button"
-          class="flex items-center justify-between rounded-lg border border-[#111110]/20 px-3 py-2 text-left text-sm"
-          @click="pickBank(row)"
-        >
-          <span :class="row.bank ? 'text-[#111110]' : 'text-[#8A8778]'">
-            {{ row.bank || '은행 선택' }}
-          </span>
-        </button>
-        <input
-          v-model="row.number"
-          type="text"
-          inputmode="numeric"
-          placeholder="예) 0000"
-          class="rounded-lg border border-[#111110]/20 px-3 py-2 text-sm"
-        />
-        <button
-          v-if="accountForms.length > 1"
-          type="button"
-          class="self-end text-xs text-[#6B6A65] underline"
-          @click="removeRow(index)"
-        >
-          삭제
-        </button>
+        <div class="flex items-center justify-between">
+          <p class="text-body1 text-grey-500">연동된 계좌 정보</p>
+          <button
+            v-if="accountForms.length > 1"
+            type="button"
+            class="text-caption text-grey-300"
+            @click="removeRow(index)"
+          >
+            삭제
+          </button>
+        </div>
+
+        <div>
+          <p class="text-caption font-medium text-grey-400">은행</p>
+          <button
+            type="button"
+            class="mt-1.5 flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3 text-left"
+            @click="pickBank(row)"
+          >
+            <span class="text-body4" :class="row.bank ? 'text-grey-500' : 'text-grey-300'">
+              {{ row.bank || '은행 선택' }}
+            </span>
+          </button>
+        </div>
+
+        <div>
+          <p class="text-caption font-medium text-grey-400">계좌번호</p>
+          <input
+            v-model="row.number"
+            type="text"
+            inputmode="numeric"
+            placeholder="예) 0000"
+            class="mt-1.5 w-full rounded-xl bg-grey-30 px-3.5 py-3 text-body4 text-grey-500 placeholder:text-grey-300"
+          />
+        </div>
       </div>
 
       <button
         type="button"
-        class="rounded-lg border border-dashed border-[#111110]/30 py-3 text-sm text-[#6B6A65]"
+        class="rounded-xl bg-primary-500 py-3 text-body4 font-bold text-white"
         @click="addRow"
       >
         + 계좌 추가하기
       </button>
-    </div>
 
-    <Button :disabled="!isValid" @click="save">저장</Button>
+      <Button class="mt-2" :disabled="!isValid" @click="save">저장</Button>
+    </div>
   </div>
 </template>

@@ -3,7 +3,6 @@
 import { ref, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
-import { useModalStore } from '@/shared/store/modal'
 import { useAuthStore } from '@/features/auth/store'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useMypageStore } from './store'
@@ -17,12 +16,11 @@ import AccountsManageSection from './components/AccountsManageSection.vue'
 import NotificationsManageSection from './components/NotificationsManageSection.vue'
 import PermissionsManageSection from './components/PermissionsManageSection.vue'
 import SubscriptionStatusSection from './components/SubscriptionStatusSection.vue'
-import SubscriptionPlanModal from './components/SubscriptionPlanModal.vue'
+import PaymentMethodsSection from './components/PaymentMethodsSection.vue'
 import AppInfoSection from './components/AppInfoSection.vue'
 
 const route = useRoute()
 const router = useRouter()
-const modalStore = useModalStore()
 const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
 const mypageStore = useMypageStore()
@@ -51,26 +49,30 @@ function goBackToMain() {
   subView.value = 'main'
 }
 
-function openPlanModal() {
-  modalStore.open(SubscriptionPlanModal, { subscription: subscription.value }, { position: 'full' })
-}
-
 async function handleLogout() {
   await router.push({ name: 'login' })
   onboardingStore.reset()
   mypageStore.reset()
   authStore.logout()
 }
+
+function selectMenuItem(id) {
+  if (id === 'logout') {
+    handleLogout()
+    return
+  }
+  subView.value = id
+}
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <AppHeader v-if="subView === 'main'" title="마이페이지" />
+  <template v-if="subView === 'main'">
+    <div class="flex flex-col">
+      <AppHeader title="마이페이지" />
 
-    <div class="flex flex-col gap-4 px-4 py-6">
-      <ProfileHeader v-if="profile" :profile="profile" />
+      <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
+        <ProfileHeader v-if="profile" :profile="profile" />
 
-      <template v-if="subView === 'main'">
         <SubscriptionSummaryCard
           v-if="subscription"
           :subscription="subscription"
@@ -80,27 +82,24 @@ async function handleLogout() {
 
         <JobListSection />
 
-        <MenuList @select="(id) => (subView = id)" />
-
-        <button
-          type="button"
-          class="mt-2 text-left text-sm font-medium text-rose-600"
-          @click="handleLogout"
-        >
-          로그아웃
-        </button>
-      </template>
-
-      <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
-      <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
-      <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
-      <SubscriptionStatusSection
-        v-else-if="subView === 'subscription' && subscription"
-        :subscription="subscription"
-        @back="goBackToMain"
-        @open-plan-modal="openPlanModal"
-      />
-      <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
+        <MenuList @select="selectMenuItem" />
+      </div>
     </div>
-  </div>
+  </template>
+
+  <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
+  <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
+  <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
+  <SubscriptionStatusSection
+    v-else-if="subView === 'subscription' && subscription"
+    :subscription="subscription"
+    @back="goBackToMain"
+    @open-payment-methods="subView = 'paymentMethods'"
+  />
+  <PaymentMethodsSection
+    v-else-if="subView === 'paymentMethods' && subscription"
+    :subscription="subscription"
+    @back="subView = 'subscription'"
+  />
+  <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
 </template>
