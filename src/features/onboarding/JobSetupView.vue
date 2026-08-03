@@ -1,51 +1,55 @@
 <!-- src/features/onboarding/JobSetupView.vue -->
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { useOnboardingStore } from './store'
 import { fetchDetectedJobs } from './api'
-import JobCard from '@/shared/components/JobCard.vue'
+import { useModalStore } from '@/shared/store/modal'
+import DetectedJobCard from './components/DetectedJobCard.vue'
+import JobFormModal from './components/JobFormModal.vue'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
 const onboardingStore = useOnboardingStore()
+const modalStore = useModalStore()
 
 const { data: detectedJobs, isLoading } = useQuery({
   queryKey: ['onboarding', 'detected-jobs'],
   queryFn: fetchDetectedJobs,
 })
 
-const jobs = ref(onboardingStore.jobs.length > 0 ? onboardingStore.jobs.map((j) => ({ ...j })) : [])
+const jobs = ref(
+  onboardingStore.jobs.length > 0
+    ? onboardingStore.jobs.map((j) => ({ ...j, confirmed: true }))
+    : [],
+)
+const allConfirmed = computed(() => jobs.value.every((job) => job.confirmed))
 
 watch(detectedJobs, (value) => {
   if (value && jobs.value.length === 0) {
-    jobs.value = value.map((job) => ({ ...job }))
+    jobs.value = value.map((job) => ({ ...job, confirmed: false }))
   }
 })
 
 function updateJob(index, updated) {
-  jobs.value[index] = updated
+  jobs.value[index] = { ...updated, confirmed: true }
+}
+
+function confirmJob(index) {
+  jobs.value[index] = { ...jobs.value[index], confirmed: true }
 }
 
 function removeJob(index) {
   jobs.value.splice(index, 1)
 }
 
-function addCustomJob() {
-  jobs.value.push({
-    id: `custom-${Date.now()}`,
-    name: '새 잡',
-    incomeMethodLabel: '건당 정산',
-    incomeAmount: 0,
-    fatigue: 3,
-    isRegular: false,
-    workDays: [],
-    startTime: '',
-    endTime: '',
-    category: 'other',
-  })
+async function addCustomJob() {
+  const created = await modalStore.open(JobFormModal, { mode: 'add' }, { position: 'bottom' })
+  if (created) {
+    jobs.value.push({ ...created, confirmed: true })
+  }
 }
 
 function submit() {
@@ -77,12 +81,13 @@ function submit() {
         </span>
 
         <div class="flex flex-col gap-3">
-          <JobCard
+          <DetectedJobCard
             v-for="(job, index) in jobs"
             :key="job.id"
             :job="job"
             @save="(updated) => updateJob(index, updated)"
             @delete="removeJob(index)"
+            @confirm="confirmJob(index)"
           />
 
           <button
@@ -93,9 +98,15 @@ function submit() {
             + 직접 잡 추가하기
           </button>
         </div>
+
+        <p class="text-center text-caption text-grey-400">
+          등록된 잡은 활성화되며, 삭제하거나 다시 확인할 수 있어요.
+        </p>
       </template>
 
-      <Button class="mt-auto" :disabled="jobs.length === 0" @click="submit">다음</Button>
+      <Button class="mt-auto" :disabled="jobs.length === 0 || !allConfirmed" @click="submit"
+        >다음</Button
+      >
     </div>
   </div>
 </template>

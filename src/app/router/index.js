@@ -21,6 +21,12 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    path: '/onboarding/analyzing',
+    name: 'onboarding-analyzing',
+    component: () => import('@/features/onboarding/AccountAnalyzingView.vue'),
+    meta: { requiresAuth: true },
+  },
+  {
     path: '/onboarding/job',
     name: 'onboarding-job',
     component: () => import('@/features/onboarding/JobSetupView.vue'),

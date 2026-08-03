@@ -9,6 +9,16 @@ export const BANK_LIST = [
   '토스뱅크',
 ]
 
+// 은행 선택 모달의 아바타 배지 스타일(색상 · 이니셜). Figma 은행 선택 시안 기준.
+export const BANK_META = {
+  KB국민은행: { initial: 'KB', bg: '#F2D140', text: '#181B1A' },
+  신한은행: { initial: 'S', bg: '#3885E0', text: '#FCFCFC' },
+  우리은행: { initial: '우', bg: '#B9BABA', text: '#181B1A' },
+  하나은행: { initial: 'H', bg: '#0DA18F', text: '#FCFCFC' },
+  카카오뱅크: { initial: 'K', bg: '#FFD900', text: '#181B1A' },
+  토스뱅크: { initial: '토', bg: '#B9BABA', text: '#181B1A' },
+}
+
 // NOTE(2026-07-28, 공통 컴포넌트 PR 반영): JobCard가 docs/JobCard.png 실제 디자인 기준으로
 // { id, name, incomeMethodLabel, incomeAmount, fatigue, isRegular, workDays, startTime, endTime }
 // 형태의 job 객체 prop을 받도록 이미 구현되어 있다. 최초 계획의 { name, cyclePattern, settlementCycle }

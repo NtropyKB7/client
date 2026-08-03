@@ -46,7 +46,7 @@ const isValid = computed(
 function submit() {
   if (!isValid.value) return
   onboardingStore.setAccounts(accountForms.value.map((row) => ({ ...row })))
-  router.push({ name: 'onboarding-job' })
+  router.push({ name: 'onboarding-analyzing' })
 }
 </script>
 
