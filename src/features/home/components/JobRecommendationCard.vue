@@ -15,10 +15,7 @@ const style = computed(() => STATUS_STYLES[props.job.status.tone])
 </script>
 
 <template>
-  <div
-    class="w-[280px] shrink-0 snap-start rounded-2xl border bg-grey-white p-4"
-    :class="style.border"
-  >
+  <div class="w-[280px] shrink-0 rounded-2xl border bg-grey-white p-4" :class="style.border">
     <div class="flex items-start justify-between">
       <div class="flex items-center gap-2">
         <span
