@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useModalStore } from '@/shared/store/modal'
-import { JOB_CATEGORIES } from '@/shared/utils/jobCategory'
+import { JOB_CATEGORIES, getJobCategory } from '@/shared/utils/jobCategory'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
+import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -44,6 +45,23 @@ function initialDraft() {
 
 const draft = ref(initialDraft())
 
+const isCategoryOpen = ref(false)
+const categoryFieldRef = ref(null)
+
+function selectCategory(value) {
+  draft.value.category = value
+  isCategoryOpen.value = false
+}
+
+function handleOutsideClick(event) {
+  if (categoryFieldRef.value && !categoryFieldRef.value.contains(event.target)) {
+    isCategoryOpen.value = false
+  }
+}
+
+onMounted(() => document.addEventListener('mousedown', handleOutsideClick))
+onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
+
 function toggleDay(day) {
   const index = draft.value.workDays.indexOf(day)
   if (index === -1) {
@@ -84,19 +102,39 @@ function cancel() {
 
     <div>
       <p class="mb-1.5 text-caption font-medium text-grey-400">잡 카테고리</p>
-      <div class="relative">
-        <select
-          v-model="draft.category"
-          class="w-full appearance-none rounded-xl bg-grey-30 px-3.5 py-3 text-body4 text-grey-500 focus:outline-none"
+      <div ref="categoryFieldRef" class="relative">
+        <button
+          type="button"
+          class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3 text-left text-body4"
+          @click="isCategoryOpen = !isCategoryOpen"
         >
-          <option value="" disabled>서비스 · 배달 · 외주</option>
-          <option v-for="option in JOB_CATEGORIES" :key="option.value" :value="option.value">
+          <span :class="draft.category ? 'text-grey-500' : 'text-grey-300'">
+            {{ draft.category ? getJobCategory(draft.category).label : '잡 카테고리' }}
+          </span>
+          <ChevronDownIcon
+            class="size-4 shrink-0 text-grey-400 transition-transform"
+            :class="isCategoryOpen ? 'rotate-180' : ''"
+          />
+        </button>
+
+        <div
+          v-if="isCategoryOpen"
+          class="absolute z-10 mt-1.5 w-full rounded-2xl border border-grey-50 bg-grey-white p-1.5 shadow-lg"
+        >
+          <button
+            v-for="option in JOB_CATEGORIES"
+            :key="option.value"
+            type="button"
+            class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-body4"
+            :class="
+              draft.category === option.value ? 'bg-primary-50 text-primary-800' : 'text-grey-500'
+            "
+            @click="selectCategory(option.value)"
+          >
             {{ option.label }}
-          </option>
-        </select>
-        <ChevronDownIcon
-          class="pointer-events-none absolute right-3.5 top-1/2 size-4 -translate-y-1/2 text-grey-400"
-        />
+            <CheckIcon v-if="draft.category === option.value" class="size-4 text-primary-600" />
+          </button>
+        </div>
       </div>
     </div>
 

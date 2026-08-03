@@ -62,7 +62,7 @@ async function requestDelete() {
       </p>
     </div>
 
-    <div class="flex shrink-0 flex-col items-end gap-2.5">
+    <div class="flex shrink-0 items-center gap-2.5">
       <button
         type="button"
         class="text-caption font-medium text-grey-400 underline"
