@@ -6,7 +6,11 @@
  */
 export function getFatigueBadge(score, max) {
   const ratio = score / max
-  if (ratio >= 0.8) return { label: '경고', className: 'bg-red-100 text-red-700' }
-  if (ratio >= 0.5) return { label: '주의', className: 'bg-amber-100 text-amber-700' }
-  return { label: '정상', className: 'bg-emerald-100 text-emerald-700' }
+  if (ratio >= 0.8) {
+    return { label: '경고', className: 'bg-[#FBE9E4] text-[#C1462F]', hint: '휴식이 꼭 필요해요' }
+  }
+  if (ratio >= 0.5) {
+    return { label: '주의', className: 'bg-[#FBE9E4] text-[#C1462F]', hint: '휴식을 권장해요' }
+  }
+  return { label: '정상', className: 'bg-primary-50 text-primary-800', hint: '좋은 컨디션이에요' }
 }

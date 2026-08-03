@@ -1,24 +1,33 @@
 <!-- src/features/onboarding/components/OnboardingProgressBar.vue -->
 <script setup>
+import { useRouter } from 'vue-router'
+import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
+
 defineProps({
   currentStep: { type: Number, required: true },
   totalSteps: { type: Number, default: 3 },
-  stepLabel: { type: String, required: true },
 })
+
+const router = useRouter()
 </script>
 
 <template>
-  <div>
-    <div class="flex gap-1">
+  <div class="flex h-[72px] items-center bg-white px-2">
+    <button
+      type="button"
+      class="flex size-10 items-center justify-center rounded-full"
+      @click="router.back()"
+    >
+      <ChevronLeftIcon class="size-6 text-grey-500" />
+    </button>
+    <div class="flex flex-1 items-center justify-center gap-1.5">
       <span
         v-for="step in totalSteps"
         :key="step"
-        class="h-1 flex-1 rounded-full"
-        :class="step <= currentStep ? 'bg-[#111110]' : 'bg-[#111110]/10'"
+        class="h-1.5 rounded-full bg-primary-500 transition-all"
+        :class="step === currentStep ? 'w-5' : step < currentStep ? 'w-1.5' : 'w-1.5 bg-[#dadada]'"
       />
     </div>
-    <p class="mt-2 text-xs font-medium text-[#6B6A65]">
-      {{ currentStep }}/{{ totalSteps }} <span class="text-[#111110]">{{ stepLabel }}</span>
-    </p>
+    <div class="size-10" />
   </div>
 </template>
