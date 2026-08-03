@@ -4,8 +4,7 @@
  * @param {'ok'|'tight'|'review'} status
  */
 export function getExpenseStatusBadge(status) {
-  if (status === 'review') return { label: '중단 검토 필요', className: 'bg-red-100 text-red-700' }
-  if (status === 'tight')
-    return { label: '이번 달만 어려움', className: 'bg-amber-100 text-amber-700' }
-  return { label: '정상 납입 가능', className: 'bg-emerald-100 text-emerald-700' }
+  if (status === 'review') return { label: '중단 검토', className: 'bg-red-100 text-red-700' }
+  if (status === 'tight') return { label: '어려움', className: 'bg-amber-100 text-amber-700' }
+  return { label: '정상 납입', className: 'bg-emerald-100 text-emerald-700' }
 }

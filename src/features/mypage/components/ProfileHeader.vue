@@ -8,13 +8,13 @@ defineProps({
 <template>
   <div class="flex items-center gap-3">
     <div
-      class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#111110] text-sm font-semibold text-white"
+      class="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-grey-500 text-caption font-bold text-white"
     >
       {{ profile.avatarLabel }}
     </div>
     <div>
-      <p class="text-sm font-semibold text-[#111110]">{{ profile.name }}님</p>
-      <p class="text-xs text-[#6B6A65]">{{ profile.email }}</p>
+      <p class="text-[17px] font-bold text-grey-500">{{ profile.name }}님</p>
+      <p class="text-caption text-grey-300">{{ profile.email }}</p>
     </div>
   </div>
 </template>

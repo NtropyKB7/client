@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { fetchProfile, fetchSubscription } from '@/features/mypage/api'
 import { useMypageStore } from '@/features/mypage/store'
 import { fetchReportList, fetchReportDetail } from './api'
+import AppHeader from '@/shared/components/AppHeader.vue'
 import ReportListSection from './components/ReportListSection.vue'
 import ReportDetailSection from './components/ReportDetailSection.vue'
 
@@ -60,26 +61,34 @@ function goToSubscription() {
 </script>
 
 <template>
-  <div class="px-4 py-6">
-    <p v-if="subView === 'list' && !reportList" class="text-sm text-[#6B6A65]">불러오는 중...</p>
-    <p v-else-if="subView === 'detail' && !reportDetail" class="text-sm text-[#6B6A65]">
-      불러오는 중...
-    </p>
+  <div class="flex flex-col">
+    <AppHeader v-if="subView === 'list'" title="리포트" />
+    <AppHeader v-else title="리포트" back @back="backToList" />
 
-    <ReportListSection
-      v-else-if="subView === 'list'"
-      :greeting-name="profile?.name ?? ''"
-      :reports="reportList"
-      @select="openDetail"
-    />
+    <div class="px-4 py-6">
+      <p v-if="subView === 'list' && !reportList" class="text-caption text-grey-300">
+        불러오는 중...
+      </p>
+      <p v-else-if="subView === 'detail' && !reportDetail" class="text-caption text-grey-300">
+        불러오는 중...
+      </p>
 
-    <ReportDetailSection
-      v-else-if="subView === 'detail'"
-      :month-label="selectedMonthLabel"
-      :is-subscribed="isSubscribed"
-      :detail="reportDetail"
-      @back="backToList"
-      @subscribe="goToSubscription"
-    />
+      <ReportListSection
+        v-else-if="subView === 'list'"
+        :greeting-name="profile?.name ?? ''"
+        :reports="reportList"
+        @select="openDetail"
+      />
+
+      <ReportDetailSection
+        v-else-if="subView === 'detail'"
+        :month-label="selectedMonthLabel"
+        :is-subscribed="isSubscribed"
+        :detail="reportDetail"
+        :report-list="reportList"
+        @change-month="openDetail"
+        @subscribe="goToSubscription"
+      />
+    </div>
   </div>
 </template>
