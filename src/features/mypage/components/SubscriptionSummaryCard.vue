@@ -25,7 +25,7 @@ defineEmits(['open-status'])
 
     <button
       type="button"
-      class="mt-3 border-t border-grey-50 pt-3 text-caption font-bold text-primary-800"
+      class="mt-3 w-full border-t border-grey-50 pt-3 text-left text-caption font-bold text-primary-800"
       @click="$emit('open-status')"
     >
       구독 설정하기
