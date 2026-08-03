@@ -1,53 +1,44 @@
 <!-- src/features/defense-mode/components/FixedExpenseChecklist.vue -->
 <script setup>
-import { computed } from 'vue'
-import Container from '@/shared/components/Container.vue'
 import { getExpenseStatusBadge } from '@/shared/utils/expenseStatus'
 
-const props = defineProps({
+defineProps({
   items: { type: Array, required: true },
 })
-
-const totalAmount = computed(() => props.items.reduce((sum, item) => sum + item.amount, 0))
 </script>
 
 <template>
-  <div class="rounded-2xl border border-[#111110]/10 bg-white p-4">
-    <p class="text-sm font-semibold text-[#111110]">고정 지출 점검</p>
-    <p class="mt-1 text-xs text-[#6B6A65]">위기 기간 내 도래하는 고정지출이에요.</p>
+  <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
+    <p class="text-body1 text-grey-500">고정 지출 점검</p>
+    <p class="mt-1 text-[11px] text-grey-300">위기 기간 내 도래하는 지출부터 확인하세요.</p>
 
-    <div class="mt-3 flex items-center justify-between rounded-lg bg-[#F3F1EC] px-3 py-2">
-      <p class="text-xs text-[#6B6A65]">이번달 고정지출 총액</p>
-      <p class="text-sm font-semibold text-[#111110]">{{ Math.round(totalAmount / 10000) }}만원</p>
-    </div>
-
-    <div class="mt-2">
-      <Container v-for="(item, index) in items" :key="item.id">
-        <template #leading>
+    <div class="mt-4 flex flex-col gap-2">
+      <div
+        v-for="(item, index) in items"
+        :key="item.id"
+        class="flex items-center gap-2.5 rounded-xl border border-grey-50 bg-grey-30 px-3 py-3"
+      >
+        <span
+          class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#294047] text-[10px] font-bold text-white"
+        >
+          {{ index + 1 }}
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-[12px] font-bold text-grey-500">{{ item.name }}</p>
+          <p class="text-[11px] font-bold text-grey-300">{{ item.nextDueLabel }}</p>
+        </div>
+        <div class="shrink-0 text-right">
           <span
-            class="flex h-6 w-6 items-center justify-center rounded-full bg-[#111110] text-xs font-semibold text-white"
+            class="inline-block rounded-full px-2.5 py-1 text-[9px] font-bold"
+            :class="getExpenseStatusBadge(item.status).className"
           >
-            {{ index + 1 }}
+            {{ getExpenseStatusBadge(item.status).label }}
           </span>
-        </template>
-        <p class="text-sm font-medium text-[#111110]">{{ item.name }}</p>
-        <p class="text-xs text-[#6B6A65]">{{ item.nextDueLabel }}</p>
-        <template #trailing>
-          <div class="text-right">
-            <p class="text-sm font-semibold text-[#111110]">{{ item.amount.toLocaleString() }}원</p>
-            <span
-              class="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
-              :class="getExpenseStatusBadge(item.status).className"
-            >
-              {{ getExpenseStatusBadge(item.status).label }}
-            </span>
-          </div>
-        </template>
-      </Container>
+          <p class="mt-1.5 text-[12px] font-bold text-grey-500">
+            {{ item.amount.toLocaleString() }}원
+          </p>
+        </div>
+      </div>
     </div>
-
-    <p class="mt-3 text-[10px] text-[#6B6A65]">
-      * 3·4순위 정확한 해지금액은 각 은행·증권사 앱에서 확인하세요.
-    </p>
   </div>
 </template>
