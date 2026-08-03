@@ -14,15 +14,15 @@ defineEmits(['click'])
   <button
     :type="type"
     :disabled="disabled"
-    class="w-full rounded-lg py-3 text-sm font-semibold transition-opacity disabled:opacity-40"
+    class="w-full rounded-full py-3 text-sm font-semibold transition-opacity disabled:opacity-40"
     :class="
       variant === 'accent'
-        ? 'bg-[#FFCC00] text-[#111110]'
+        ? 'bg-[#FEE500] text-[#1A1A1A]'
         : variant === 'outline'
-          ? 'border border-[#111110]/20 bg-white text-[#111110]'
+          ? 'border border-[#D4D4D4] bg-white text-[#1A1A1A]'
           : variant === 'danger'
             ? 'bg-rose-600 text-white'
-            : 'bg-[#111110] text-white'
+            : 'bg-primary-500 text-white'
     "
     @click="$emit('click', $event)"
   >
