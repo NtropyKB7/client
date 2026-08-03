@@ -87,12 +87,21 @@ function selectMenuItem(id) {
     </div>
   </template>
 
-  <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
-  <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
+  <AccountsManageSection
+    v-else-if="subView === 'accounts'"
+    :profile="profile"
+    @back="goBackToMain"
+  />
+  <NotificationsManageSection
+    v-else-if="subView === 'notifications'"
+    :profile="profile"
+    @back="goBackToMain"
+  />
   <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
   <SubscriptionStatusSection
     v-else-if="subView === 'subscription' && subscription"
     :subscription="subscription"
+    :profile="profile"
     @back="goBackToMain"
     @open-payment-methods="subView = 'paymentMethods'"
   />

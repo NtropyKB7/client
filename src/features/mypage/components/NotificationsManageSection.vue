@@ -5,6 +5,11 @@ import { useQuery } from '@tanstack/vue-query'
 import { fetchNotifications } from '../api'
 import { useMypageStore } from '../store'
 import AppHeader from '@/shared/components/AppHeader.vue'
+import ProfileHeader from './ProfileHeader.vue'
+
+defineProps({
+  profile: { type: Object, default: null },
+})
 
 defineEmits(['back'])
 
@@ -25,6 +30,8 @@ watch(data, (value) => {
     <AppHeader back title="마이페이지" @back="$emit('back')" />
 
     <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
+      <ProfileHeader v-if="profile" :profile="profile" />
+
       <p v-if="mypageStore.notifications === null" class="text-caption text-grey-300">
         불러오는 중...
       </p>

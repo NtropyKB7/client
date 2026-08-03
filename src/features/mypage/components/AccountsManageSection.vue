@@ -5,7 +5,12 @@ import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import BankPickerModal from '@/features/onboarding/components/BankPickerModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
+import ProfileHeader from './ProfileHeader.vue'
 import Button from '@/shared/components/Button.vue'
+
+defineProps({
+  profile: { type: Object, default: null },
+})
 
 defineEmits(['back'])
 
@@ -54,6 +59,8 @@ function save() {
     <AppHeader back title="마이페이지" @back="$emit('back')" />
 
     <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
+      <ProfileHeader v-if="profile" :profile="profile" />
+
       <div
         v-for="(row, index) in accountForms"
         :key="index"

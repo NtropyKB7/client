@@ -5,11 +5,13 @@ import { useModalStore } from '@/shared/store/modal'
 import { useMypageStore } from '../store'
 import { PLAN_OPTIONS } from '../api'
 import AppHeader from '@/shared/components/AppHeader.vue'
+import ProfileHeader from './ProfileHeader.vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
 import CancelSubscriptionConfirmModal from './CancelSubscriptionConfirmModal.vue'
 
 defineProps({
   subscription: { type: Object, required: true },
+  profile: { type: Object, default: null },
 })
 
 const emit = defineEmits(['back', 'open-payment-methods'])
@@ -38,6 +40,8 @@ async function openCancelConfirm() {
     <AppHeader back title="마이페이지" @back="emit('back')" />
 
     <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
+      <ProfileHeader v-if="profile" :profile="profile" />
+
       <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
         <div class="flex items-center justify-between">
           <p class="text-body1 text-grey-500">{{ currentPlan.name }}</p>
