@@ -69,8 +69,8 @@ const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore
       </div>
 
       <div class="flex flex-col gap-3">
-        <p class="px-4 text-body1 text-grey-500">잡별 추천 근무시간</p>
-        <div class="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
+        <p class="pl-4 text-body1 text-grey-500">잡별 추천 근무시간</p>
+        <div class="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto py-1 pl-6 pr-4">
           <JobRecommendationCard
             v-for="job in dashboard.jobRecommendations"
             :key="job.id"

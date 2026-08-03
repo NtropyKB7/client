@@ -16,17 +16,17 @@ const tabs = [
 
 <template>
   <nav
-    class="fixed inset-x-0 bottom-0 flex h-[74px] border-t border-[#111110]/20 bg-[#F4F3EF]"
+    class="fixed inset-x-0 bottom-0 flex h-[84px] border-t border-grey-50 bg-grey-white pt-1.5"
     style="padding-bottom: env(safe-area-inset-bottom)"
   >
     <router-link
       v-for="tab in tabs"
       :key="tab.label"
       :to="tab.to"
-      class="flex flex-1 flex-col items-center gap-1 py-2 text-xs text-[#6B6A65]"
-      active-class="text-[#000000]!"
+      class="flex flex-1 flex-col items-center justify-center gap-1.5 whitespace-nowrap text-body3 text-grey-300"
+      active-class="text-primary-600!"
     >
-      <component :is="tab.icon" class="h-6 w-6" />
+      <component :is="tab.icon" class="size-6" />
       {{ tab.label }}
     </router-link>
   </nav>
