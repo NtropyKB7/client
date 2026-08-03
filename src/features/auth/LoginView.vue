@@ -41,8 +41,8 @@ function loginWithGoogle() {
     </p>
 
     <div class="flex w-full max-w-xs flex-col gap-[10px]">
-      <Button variant="accent" @click="loginWithKakao">카카오로 3초만에 시작하기</Button>
-      <Button variant="outline" @click="loginWithGoogle">구글로 계속하기</Button>
+      <Button pill variant="accent" @click="loginWithKakao">카카오로 3초만에 시작하기</Button>
+      <Button pill variant="outline" @click="loginWithGoogle">구글로 계속하기</Button>
     </div>
 
     <p class="pt-1 text-center text-[12px] tracking-[-0.02em] text-[#A3A3A3]">
