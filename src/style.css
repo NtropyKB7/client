@@ -83,6 +83,13 @@
   letter-spacing: -0.02em;
 }
 
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 :root {
   --app-bg: #F3F1EC;
 }

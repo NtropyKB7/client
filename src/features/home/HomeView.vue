@@ -1,107 +1,137 @@
 <!-- src/features/home/HomeView.vue -->
 <script setup>
+import { computed } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { fetchDashboard } from './api'
-import StatCard from '@/shared/components/StatCard.vue'
-import JobRecommendationRow from './components/JobRecommendationRow.vue'
-import DonutRing from './components/DonutRing.vue'
+import JobRecommendationCard from './components/JobRecommendationCard.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
+import NtropyLogo from '@/shared/components/icons/NtropyLogo.vue'
 import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
 
 const { data: dashboard, isLoading } = useQuery({
   queryKey: ['home', 'dashboard'],
   queryFn: fetchDashboard,
 })
+
+const remainingHours = computed(() =>
+  Math.max(0, dashboard.value.goalHours.target - dashboard.value.goalHours.current),
+)
+const hoursProgressPercent = computed(() =>
+  Math.min(100, (dashboard.value.goalHours.current / dashboard.value.goalHours.target) * 100),
+)
+
+const goalIncomePercent = computed(() =>
+  Math.round((dashboard.value.goalIncome.amount / dashboard.value.goalIncome.target) * 100),
+)
+const goalIncomeRemaining = computed(
+  () => dashboard.value.goalIncome.target - dashboard.value.goalIncome.amount,
+)
+
+const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 px-4 py-6">
-    <p v-if="isLoading" class="text-sm text-[#6B6A65]">불러오는 중...</p>
+  <div class="flex flex-col gap-8 bg-grey-white pb-8">
+    <p v-if="isLoading" class="px-4 pt-6 text-body4 text-grey-400">불러오는 중...</p>
 
     <template v-else-if="dashboard">
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm text-[#6B6A65]">안녕하세요</p>
-          <h1 class="text-lg font-semibold text-[#111110]">
-            {{ dashboard.greetingName }}님의 이번 달
-          </h1>
-        </div>
-        <BellIcon class="h-6 w-6 text-[#111110]" />
+      <div class="flex items-center justify-between px-4 pt-[13px]">
+        <NtropyLogo class="h-[22px] w-[72px] text-grey-500" />
+        <BellIcon class="size-6 text-grey-500" />
       </div>
 
-      <div class="rounded-xl bg-[#111110] p-4 text-white">
-        <p class="text-xs text-white/60">이번달 목표 근무시간</p>
-        <p class="mt-1 text-3xl font-bold">
-          {{ dashboard.goalHours.current }}
-          <span class="text-base font-normal text-white/60"
-            >/ {{ dashboard.goalHours.target }} 시간</span
-          >
+      <div class="flex flex-col gap-2 px-4">
+        <p class="text-body1 text-grey-400">{{ dashboard.greetingName }}님의 이번달</p>
+        <p class="text-head1 leading-[1.5] text-grey-500">
+          목표 근무시간까지<br />
+          <span class="text-primary-600">{{ remainingHours }}</span
+          >시간 남았어요
         </p>
-        <div class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-white/15">
+
+        <div class="relative mt-4">
           <div
-            class="h-full rounded-full bg-emerald-400"
-            :style="{
-              width: `${(dashboard.goalHours.current / dashboard.goalHours.target) * 100}%`,
-            }"
+            class="absolute -top-8 -translate-x-1/2 rounded-[4px] bg-primary-600 px-2 py-1 text-caption font-semibold text-white transition-all"
+            :style="{ left: `${hoursProgressPercent}%` }"
+          >
+            {{ dashboard.goalHours.current }}h
+          </div>
+          <div class="h-2 w-full overflow-hidden rounded-full bg-grey-50">
+            <div
+              class="h-full rounded-full bg-gradient-to-r from-primary-100 to-primary-600"
+              :style="{ width: `${hoursProgressPercent}%` }"
+            />
+          </div>
+          <div class="mt-1.5 flex justify-between text-body4 text-grey-300">
+            <span>0h</span>
+            <span>{{ dashboard.goalHours.target }}h</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <p class="px-4 text-body1 text-grey-500">잡별 추천 근무시간</p>
+        <div class="scrollbar-none flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1">
+          <JobRecommendationCard
+            v-for="job in dashboard.jobRecommendations"
+            :key="job.id"
+            :job="job"
           />
         </div>
-        <p class="mt-2 text-[11px] text-white/50">ROI 최적화 알고리즘 기반 추천 포트폴리오</p>
       </div>
 
-      <p class="text-sm font-semibold text-[#111110]">잡별 추천 근무시간</p>
-      <JobRecommendationRow
-        v-for="job in dashboard.jobRecommendations"
-        :key="job.id"
-        v-bind="job"
-      />
+      <div class="flex flex-col gap-3 px-4">
+        <p class="text-body1 text-grey-500">이번 달 요약</p>
 
-      <div class="grid grid-cols-2 gap-3">
-        <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
-          <DonutRing :percent="dashboard.achievementRate.percent" color-class="text-emerald-500">
-            <span class="text-sm font-semibold text-[#111110]">
-              {{ dashboard.achievementRate.percent }}%
-            </span>
-          </DonutRing>
-          <p class="mt-2 text-xs text-[#6B6A65]">현재 목표 달성율</p>
-          <p class="text-sm font-semibold text-[#111110]">
-            {{ dashboard.achievementRate.amount.toLocaleString() }}원 /
-            {{ dashboard.achievementRate.target.toLocaleString() }}원
-          </p>
-        </div>
-
-        <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
-          <DonutRing :percent="dashboard.settlementAmount.percent" color-class="text-amber-500">
-            <span class="text-sm font-semibold text-[#111110]">
-              {{ dashboard.settlementAmount.percent }}%
-            </span>
-          </DonutRing>
-          <div class="mt-2 flex items-center justify-between">
-            <p class="text-xs text-[#6B6A65]">실 정산액</p>
+        <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
+          <div class="flex items-center justify-between">
+            <p class="text-caption font-medium text-grey-400">목표 수입</p>
             <span
-              class="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+              class="rounded-full bg-primary-50 px-2.5 py-1 text-caption font-bold text-primary-800"
             >
-              {{ dashboard.settlementAmount.percent }}%
+              {{ goalIncomePercent }}%
             </span>
           </div>
-          <p class="text-sm font-semibold text-[#111110]">
-            {{ dashboard.settlementAmount.amount.toLocaleString() }}원 /
-            {{ dashboard.settlementAmount.target.toLocaleString() }}원
+          <p class="mt-2 text-head3 font-bold text-grey-500">
+            {{ dashboard.goalIncome.amount.toLocaleString() }}원
+          </p>
+          <div class="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-grey-50">
+            <div
+              class="h-full rounded-full bg-primary-500"
+              :style="{ width: `${goalIncomePercent}%` }"
+            />
+          </div>
+          <p class="mt-2.5 text-caption text-grey-400">
+            목표 {{ dashboard.goalIncome.target.toLocaleString() }}원까지
+            {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
           </p>
         </div>
 
-        <StatCard
-          title="현재 피로도"
-          :value="`${dashboard.fatigueScore} / 100`"
-          :badge-label="getFatigueBadge(dashboard.fatigueScore, 100).label"
-          :badge-class="getFatigueBadge(dashboard.fatigueScore, 100).className"
-        />
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-2xl border border-grey-50 p-3.5">
+            <div class="flex items-center justify-between">
+              <p class="text-caption font-medium text-grey-400">현재 피로도</p>
+              <span
+                class="rounded-full px-2 py-1 text-[10.5px] font-medium"
+                :class="fatigueBadge.className"
+              >
+                {{ fatigueBadge.label }}
+              </span>
+            </div>
+            <p class="mt-2 text-head3 font-bold text-grey-500">
+              {{ dashboard.fatigueScore }}
+              <span class="text-caption font-normal text-grey-400">/ 100</span>
+            </p>
+            <p class="mt-2 text-caption font-medium text-grey-400">{{ fatigueBadge.hint }}</p>
+          </div>
 
-        <StatCard title="실질 시급" :value="`${dashboard.realWage.real.toLocaleString()}원`">
-          <template #detail>
-            표면시급 {{ dashboard.realWage.nominal.toLocaleString() }}원 대비 차감 —
-            {{ dashboard.realWage.detail }}
-          </template>
-        </StatCard>
+          <div class="rounded-2xl border border-grey-50 p-3.5">
+            <p class="text-caption font-medium text-grey-400">실질 시급</p>
+            <p class="mt-2 text-head3 font-bold text-grey-500">
+              {{ dashboard.realWage.real.toLocaleString() }}원
+            </p>
+            <p class="mt-2 text-caption text-grey-400">{{ dashboard.realWage.detail }}</p>
+          </div>
+        </div>
       </div>
     </template>
   </div>
