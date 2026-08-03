@@ -62,11 +62,14 @@ function goToSubscription() {
 
 <template>
   <div class="flex flex-col">
-    <AppHeader v-if="subView === 'list'" :title="`${profile?.name ?? ''}님의 월별 리포트`" />
+    <AppHeader v-if="subView === 'list'" title="리포트" />
+    <AppHeader v-else title="리포트" back @back="backToList" />
 
     <div class="px-4 py-6">
-      <p v-if="subView === 'list' && !reportList" class="text-sm text-[#6B6A65]">불러오는 중...</p>
-      <p v-else-if="subView === 'detail' && !reportDetail" class="text-sm text-[#6B6A65]">
+      <p v-if="subView === 'list' && !reportList" class="text-caption text-grey-300">
+        불러오는 중...
+      </p>
+      <p v-else-if="subView === 'detail' && !reportDetail" class="text-caption text-grey-300">
         불러오는 중...
       </p>
 
@@ -82,7 +85,8 @@ function goToSubscription() {
         :month-label="selectedMonthLabel"
         :is-subscribed="isSubscribed"
         :detail="reportDetail"
-        @back="backToList"
+        :report-list="reportList"
+        @change-month="openDetail"
         @subscribe="goToSubscription"
       />
     </div>

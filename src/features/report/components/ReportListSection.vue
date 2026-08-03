@@ -1,44 +1,85 @@
 <script setup>
-import ReportIcon from '@/shared/components/icons/ReportIcon.vue'
+import { computed } from 'vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
-import Container from '@/shared/components/Container.vue'
+import { formatMan } from '../utils'
 
-defineProps({
+const props = defineProps({
   greetingName: { type: String, required: true },
   reports: { type: Array, required: true },
 })
 
 defineEmits(['select'])
+
+const latest = computed(() => props.reports[0])
+const previousReports = computed(() => props.reports.slice(1))
+
+const sparkline = computed(() => {
+  const recent = props.reports.slice(0, 5).slice().reverse()
+  const max = Math.max(...recent.map((report) => report.availableFunds), 1)
+  return recent.map((report) => ({
+    month: report.month,
+    heightPercent: Math.max(18, Math.round((report.availableFunds / max) * 100)),
+  }))
+})
 </script>
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex flex-col gap-1">
-      <p class="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B6A65]">Monthly report</p>
-      <div class="flex items-center gap-2">
-        <ReportIcon class="h-8 w-8 text-[#111110]" />
-        <h2 class="text-xl font-bold tracking-tight text-[#111110]">월별 리포트</h2>
-      </div>
-      <p class="mt-1 text-xs text-[#6B6A65]">월별 소득 관리를 돌아보기 위한 핵심이 요약된 리포트</p>
-    </div>
+    <p class="text-caption text-grey-300">{{ greetingName }}님의 자금 흐름을 월별로 정리했어요.</p>
 
-    <div class="flex flex-col gap-3">
-      <div
-        v-for="report in reports"
-        :key="report.month"
-        class="rounded-xl border border-[#111110]/10 bg-white px-4"
-      >
-        <Container clickable @click="$emit('select', report.month)">
-          <template #leading>
-            <ReportIcon class="h-5 w-5 text-[#111110]" />
-          </template>
-          <p class="text-sm font-semibold text-[#111110]">{{ report.monthLabel }} 리포트</p>
-          <p class="mt-1 text-xs text-[#6B6A65]">소비 분석·금융상품 추천이 담긴 월간 보고서예요.</p>
-          <template #trailing>
-            <ChevronRightIcon class="h-4 w-4 text-[#6B6A65]" />
-          </template>
-        </Container>
+    <button
+      v-if="latest"
+      type="button"
+      class="rounded-2xl bg-primary-50 p-4 text-left"
+      @click="$emit('select', latest.month)"
+    >
+      <div class="flex items-start justify-between">
+        <span class="rounded-full bg-grey-white px-3 py-1.5 text-[10px] font-bold text-primary-800">
+          최신
+        </span>
+        <div class="flex h-10 items-end gap-1.5">
+          <span
+            v-for="bar in sparkline"
+            :key="bar.month"
+            class="w-2.5 rounded-[3px] bg-primary-600"
+            :style="{ height: `${bar.heightPercent}%` }"
+          />
+        </div>
       </div>
+      <p class="mt-3 text-head3 font-bold text-grey-500">{{ latest.monthLabel }} 리포트</p>
+      <p class="mt-1 text-caption text-grey-300">
+        소득 {{ formatMan(latest.totalIncome) }} · 소비 {{ formatMan(latest.totalSpend) }}
+      </p>
+      <p class="mt-3 text-caption text-primary-800">이번 달 가용자금</p>
+      <p class="mt-1 text-head1 text-primary-800">{{ formatMan(latest.availableFunds) }}</p>
+    </button>
+
+    <div class="flex flex-col gap-1">
+      <div class="flex items-center justify-between">
+        <p class="text-body1 text-grey-500">지난 리포트</p>
+        <p class="text-[11px] text-grey-300">최근 6개월</p>
+      </div>
+
+      <button
+        v-for="report in previousReports"
+        :key="report.month"
+        type="button"
+        class="mt-2 flex items-center gap-3 rounded-2xl border border-grey-50 bg-grey-white p-3.5 text-left"
+        @click="$emit('select', report.month)"
+      >
+        <span
+          class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-primary-50 text-head3 font-bold text-primary-800"
+        >
+          {{ report.monthLabel.replace('월', '') }}
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-body3 text-grey-500">{{ report.monthLabel }} 리포트</p>
+          <p class="mt-1 text-caption text-grey-300">
+            소득 {{ formatMan(report.totalIncome) }} · 소비 {{ formatMan(report.totalSpend) }}
+          </p>
+        </div>
+        <ChevronRightIcon class="size-4 shrink-0 text-grey-300" />
+      </button>
     </div>
   </div>
 </template>
