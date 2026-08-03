@@ -13,14 +13,19 @@ defineEmits(['select'])
 const latest = computed(() => props.reports[0])
 const previousReports = computed(() => props.reports.slice(1))
 
-const sparkline = computed(() => {
-  const recent = props.reports.slice(0, 5).slice().reverse()
-  const max = Math.max(...recent.map((report) => report.availableFunds), 1)
-  return recent.map((report) => ({
-    month: report.month,
-    heightPercent: Math.max(18, Math.round((report.availableFunds / max) * 100)),
-  }))
-})
+// Figma 스파크라인은 실제 수치가 아니라 우상향 추세를 보여주는 장식용 그래프
+const SPARKLINE_HEIGHT_PERCENTS = [9, 29, 50, 75, 100]
+
+const sparkline = computed(() =>
+  props.reports
+    .slice(0, 5)
+    .slice()
+    .reverse()
+    .map((report, index) => ({
+      month: report.month,
+      heightPercent: SPARKLINE_HEIGHT_PERCENTS[index] ?? 100,
+    })),
+)
 </script>
 
 <template>
@@ -37,6 +42,18 @@ const sparkline = computed(() => {
         <span class="rounded-full bg-grey-white px-3 py-1.5 text-[10px] font-bold text-primary-800">
           최신
         </span>
+        <ChevronRightIcon class="size-4 text-primary-800" />
+      </div>
+      <p class="mt-3 text-head3 font-bold text-grey-500">{{ latest.monthLabel }} 리포트</p>
+      <p class="mt-1 text-caption text-grey-300">
+        소득 {{ formatMan(latest.totalIncome) }} · 소비 {{ formatMan(latest.totalSpend) }}
+      </p>
+
+      <div class="mt-3 flex items-end justify-between">
+        <div>
+          <p class="text-caption text-primary-800">이번 달 가용자금</p>
+          <p class="mt-1 text-head1 text-primary-800">{{ formatMan(latest.availableFunds) }}</p>
+        </div>
         <div class="flex h-10 items-end gap-1.5">
           <span
             v-for="bar in sparkline"
@@ -46,12 +63,6 @@ const sparkline = computed(() => {
           />
         </div>
       </div>
-      <p class="mt-3 text-head3 font-bold text-grey-500">{{ latest.monthLabel }} 리포트</p>
-      <p class="mt-1 text-caption text-grey-300">
-        소득 {{ formatMan(latest.totalIncome) }} · 소비 {{ formatMan(latest.totalSpend) }}
-      </p>
-      <p class="mt-3 text-caption text-primary-800">이번 달 가용자금</p>
-      <p class="mt-1 text-head1 text-primary-800">{{ formatMan(latest.availableFunds) }}</p>
     </button>
 
     <div class="flex flex-col gap-1">
