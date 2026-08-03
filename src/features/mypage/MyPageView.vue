@@ -8,6 +8,7 @@ import { useAuthStore } from '@/features/auth/store'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useMypageStore } from './store'
 import { fetchProfile, fetchSubscription, PLAN_OPTIONS } from './api'
+import AppHeader from '@/shared/components/AppHeader.vue'
 import ProfileHeader from './components/ProfileHeader.vue'
 import JobListSection from './components/JobListSection.vue'
 import SubscriptionSummaryCard from './components/SubscriptionSummaryCard.vue'
@@ -63,39 +64,43 @@ async function handleLogout() {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4 px-4 py-6">
-    <ProfileHeader v-if="profile" :profile="profile" />
+  <div class="flex flex-col">
+    <AppHeader v-if="subView === 'main'" title="마이페이지" />
 
-    <template v-if="subView === 'main'">
-      <SubscriptionSummaryCard
-        v-if="subscription"
+    <div class="flex flex-col gap-4 px-4 py-6">
+      <ProfileHeader v-if="profile" :profile="profile" />
+
+      <template v-if="subView === 'main'">
+        <SubscriptionSummaryCard
+          v-if="subscription"
+          :subscription="subscription"
+          :plan-label="currentPlanLabel"
+          @open-status="subView = 'subscription'"
+        />
+
+        <JobListSection />
+
+        <MenuList @select="(id) => (subView = id)" />
+
+        <button
+          type="button"
+          class="mt-2 text-left text-sm font-medium text-rose-600"
+          @click="handleLogout"
+        >
+          로그아웃
+        </button>
+      </template>
+
+      <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
+      <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
+      <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
+      <SubscriptionStatusSection
+        v-else-if="subView === 'subscription' && subscription"
         :subscription="subscription"
-        :plan-label="currentPlanLabel"
-        @open-status="subView = 'subscription'"
+        @back="goBackToMain"
+        @open-plan-modal="openPlanModal"
       />
-
-      <JobListSection />
-
-      <MenuList @select="(id) => (subView = id)" />
-
-      <button
-        type="button"
-        class="mt-2 text-left text-sm font-medium text-rose-600"
-        @click="handleLogout"
-      >
-        로그아웃
-      </button>
-    </template>
-
-    <AccountsManageSection v-else-if="subView === 'accounts'" @back="goBackToMain" />
-    <NotificationsManageSection v-else-if="subView === 'notifications'" @back="goBackToMain" />
-    <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
-    <SubscriptionStatusSection
-      v-else-if="subView === 'subscription' && subscription"
-      :subscription="subscription"
-      @back="goBackToMain"
-      @open-plan-modal="openPlanModal"
-    />
-    <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
+      <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
+    </div>
   </div>
 </template>

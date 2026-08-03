@@ -1,7 +1,6 @@
 <script setup>
 import ReportIcon from '@/shared/components/icons/ReportIcon.vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
-import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import Container from '@/shared/components/Container.vue'
 
 defineProps({
@@ -14,11 +13,6 @@ defineEmits(['select'])
 
 <template>
   <div class="flex flex-col gap-4">
-    <div class="flex items-center justify-between">
-      <h1 class="text-base font-semibold text-[#111110]">{{ greetingName }}님의 월별 리포트</h1>
-      <BellIcon class="h-6 w-6 text-[#111110]" />
-    </div>
-
     <div class="flex flex-col gap-1">
       <p class="text-xs font-semibold uppercase tracking-[0.15em] text-[#6B6A65]">Monthly report</p>
       <div class="flex items-center gap-2">
