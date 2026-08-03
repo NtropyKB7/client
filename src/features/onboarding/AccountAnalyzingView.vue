@@ -49,9 +49,13 @@ onMounted(() => {
         </div>
 
         <div class="absolute bottom-9 flex gap-1.5">
-          <span class="size-3 animate-bounce rounded-full bg-primary-500" />
-          <span class="size-3 animate-bounce rounded-full bg-primary-300 [animation-delay:150ms]" />
-          <span class="size-3 animate-bounce rounded-full bg-primary-100 [animation-delay:300ms]" />
+          <span class="size-3 animate-pulse rounded-full bg-primary-500 [animation-duration:1s]" />
+          <span
+            class="size-3 animate-pulse rounded-full bg-primary-300 [animation-delay:200ms] [animation-duration:1s]"
+          />
+          <span
+            class="size-3 animate-pulse rounded-full bg-primary-100 [animation-delay:400ms] [animation-duration:1s]"
+          />
         </div>
       </div>
 
