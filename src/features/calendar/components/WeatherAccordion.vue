@@ -15,6 +15,7 @@ function weekdayLabel(dateKey) {
   return WEEKDAY_LABELS[new Date(dateKey).getDay()]
 }
 
+// weatherByDate가 이미 최근 1주일 안팎의 항목만 담고 있다고 가정한다(정렬 후 상위 7개만 사용).
 const days = computed(() =>
   Object.entries(props.weatherByDate)
     .sort(([a], [b]) => a.localeCompare(b))
@@ -23,7 +24,7 @@ const days = computed(() =>
 )
 
 const highlightDay = computed(
-  () => days.value.find((day) => day.label.includes('할증')) ?? days.value[0] ?? null,
+  () => days.value.find((day) => day.label?.includes('할증')) ?? days.value[0] ?? null,
 )
 </script>
 
