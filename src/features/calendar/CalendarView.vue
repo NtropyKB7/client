@@ -6,7 +6,7 @@ import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
 import { useCalendarStore } from './store'
-import { fetchCalendarMonth, FATIGUE_THRESHOLD, GREETING_NAME, TODAY_DATE_KEY } from './api'
+import { fetchCalendarMonth, fetchWeatherForecast, FATIGUE_THRESHOLD, TODAY_DATE_KEY } from './api'
 import {
   getMonthGrid,
   formatDateKey,
@@ -47,6 +47,18 @@ const { data: monthConfig } = useQuery({
   queryFn: () => fetchCalendarMonth({ year: currentYear.value, month: currentMonth.value }),
 })
 
+// TODO(연동 테스트 전용): GET /api/weather 연동 확인용. 오늘 기준 5일치만 채워지며,
+// 캘린더 전체가 백엔드로 마이그레이션되면 fetchCalendarMonth의 내장 weather로 대체되어 제거된다.
+const { data: liveWeatherByDate } = useQuery({
+  queryKey: ['calendar', 'weather', 'live'],
+  queryFn: () => fetchWeatherForecast(),
+})
+
+const weatherByDate = computed(() => ({
+  ...monthConfig.value?.weatherByDate,
+  ...liveWeatherByDate.value,
+}))
+
 const grid = computed(() => getMonthGrid(currentYear.value, currentMonth.value))
 
 const cells = computed(() =>
@@ -62,7 +74,7 @@ const cells = computed(() =>
       status: computeDayStatus(dayEntries, isDefenseMode),
       categories: getUniqueCategories(dayEntries),
       isSelected: dateKey === selectedDateKey.value,
-      weather: monthConfig.value?.weatherByDate?.[dateKey] ?? null,
+      weather: weatherByDate.value[dateKey] ?? null,
     }
   }),
 )
@@ -90,9 +102,7 @@ function selectDate(date) {
 }
 
 const selectedEntries = computed(() => calendarStore.entriesForDate(selectedDateKey.value))
-const selectedWeather = computed(
-  () => monthConfig.value?.weatherByDate?.[selectedDateKey.value] ?? null,
-)
+const selectedWeather = computed(() => weatherByDate.value[selectedDateKey.value] ?? null)
 const selectedFatigue = computed(() => computeDayFatigue(selectedEntries.value))
 
 const monthPrefix = computed(
@@ -154,7 +164,7 @@ async function openDeleteConfirm(entry) {
 
 <template>
   <div class="flex flex-col">
-    <AppHeader :title="`${GREETING_NAME}님의 이번 달 캘린더`" />
+    <AppHeader title="캘린더" />
 
     <div class="flex flex-col gap-4 px-4 py-6">
       <div class="flex items-center justify-center gap-4">
