@@ -23,6 +23,15 @@ const days = computed(() =>
     .map(([dateKey, weather]) => ({ dateKey, weekday: weekdayLabel(dateKey), ...weather })),
 )
 
+const rangeLabel = computed(() => {
+  if (days.value.length === 0) return ''
+  const format = (dateKey) => {
+    const [, month, day] = dateKey.split('-')
+    return `${Number(month)}/${Number(day)}`
+  }
+  return `${format(days.value[0].dateKey)}–${format(days.value[days.value.length - 1].dateKey)}`
+})
+
 const highlightDay = computed(
   () => days.value.find((day) => day.label?.includes('할증')) ?? days.value[0] ?? null,
 )
@@ -41,10 +50,13 @@ const highlightDay = computed(
           {{ highlightDay.weekday }}요일 {{ highlightDay.icon }} {{ highlightDay.label }}
         </p>
       </div>
-      <ChevronDownIcon
-        class="size-4 shrink-0 text-grey-400 transition-transform"
-        :class="isOpen ? 'rotate-180' : ''"
-      />
+      <span class="flex shrink-0 items-center gap-1.5">
+        <span v-if="isOpen && rangeLabel" class="text-caption text-grey-400">{{ rangeLabel }}</span>
+        <ChevronDownIcon
+          class="size-4 shrink-0 text-grey-400 transition-transform"
+          :class="isOpen ? 'rotate-180' : ''"
+        />
+      </span>
     </button>
 
     <div v-if="isOpen" class="mt-3 flex justify-between gap-1 border-t border-grey-50 pt-3">
