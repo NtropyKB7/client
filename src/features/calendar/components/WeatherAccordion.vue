@@ -51,7 +51,7 @@ const highlightDay = computed(
         </p>
       </div>
       <span class="flex shrink-0 items-center gap-1.5">
-        <span v-if="isOpen && rangeLabel" class="text-caption text-grey-400">{{ rangeLabel }}</span>
+        <span v-if="rangeLabel" class="text-caption text-grey-400">{{ rangeLabel }}</span>
         <ChevronDownIcon
           class="size-4 shrink-0 text-grey-400 transition-transform"
           :class="isOpen ? 'rotate-180' : ''"
