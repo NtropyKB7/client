@@ -1,6 +1,6 @@
 <!-- src/features/calendar/components/DayDetailPanel.vue -->
 <script setup>
-import { getEntryStatusBadge } from '../utils'
+import { getJobCategory } from '@/shared/utils/jobCategory'
 import Button from '@/shared/components/Button.vue'
 
 defineProps({
@@ -9,78 +9,61 @@ defineProps({
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
   fatigueThreshold: { type: Number, required: true },
-  isToday: { type: Boolean, default: false },
+  primaryActionLabel: { type: String, required: true },
 })
 
-const emit = defineEmits(['add-plan', 'edit-entry', 'confirm-entry', 'delete-entry'])
+const emit = defineEmits(['primary-action', 'open-entry'])
 </script>
 
 <template>
-  <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
+  <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
     <div class="flex items-center justify-between">
-      <p class="text-sm font-semibold text-[#111110]">{{ dateKey }}</p>
-      <span v-if="weather" class="rounded-full bg-[#F3F1EC] px-2 py-1 text-xs text-[#6B6A65]">
+      <p class="text-body3 text-grey-500">{{ dateKey }}</p>
+      <span v-if="weather" class="rounded-full bg-grey-30 px-2 py-1 text-caption text-grey-400">
         {{ weather.icon }} {{ weather.label }}
       </span>
     </div>
 
-    <p v-if="entries.length === 0" class="mt-3 text-xs text-[#6B6A65]">
+    <p v-if="entries.length === 0" class="mt-3 text-caption text-grey-400">
       등록된 근무 계획이 없어요.
     </p>
 
-    <div
+    <button
       v-for="entry in entries"
       :key="entry.id"
-      class="mt-3 flex items-center justify-between border-b border-[#111110]/5 pb-2 last:border-b-0"
+      type="button"
+      class="mt-2 flex w-full items-center justify-between rounded-[9px] bg-grey-30 px-2.5 py-2 text-left disabled:opacity-60"
+      :disabled="entry.status === 'settled'"
+      @click="emit('open-entry', entry)"
     >
-      <div>
-        <p class="text-sm text-[#111110]">
-          {{ entry.jobName }} {{ entry.startTime }}–{{ entry.endTime }}
-        </p>
+      <span class="flex items-center gap-2">
         <span
-          class="mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold"
-          :class="getEntryStatusBadge(entry.status).className"
+          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] text-[10px] font-bold text-white"
+          :class="getJobCategory(entry.category).colorClass"
         >
-          {{ getEntryStatusBadge(entry.status).label }}
+          {{ entry.jobName.slice(0, 1) }}
         </span>
-      </div>
-      <div class="flex shrink-0 gap-2 text-xs">
-        <button
-          v-if="entry.status !== 'settled' && !isToday"
-          type="button"
-          class="text-[#6B6A65] underline"
-          @click="emit('edit-entry', entry)"
-        >
-          수정하기
-        </button>
-        <button
-          v-if="entry.status === 'planned' && isToday"
-          type="button"
-          class="text-[#E0B400] underline"
-          @click="emit('confirm-entry', entry)"
-        >
-          확정하기
-        </button>
-        <button
-          v-if="entry.status !== 'settled'"
-          type="button"
-          class="text-red-600 underline"
-          @click="emit('delete-entry', entry)"
-        >
-          삭제하기
-        </button>
-      </div>
-    </div>
+        <span class="text-body3 text-grey-500">{{ entry.jobName }}</span>
+      </span>
+      <span class="text-caption text-grey-400">{{ entry.startTime }}–{{ entry.endTime }}</span>
+    </button>
 
     <p
       v-if="fatigueScore !== null"
-      class="mt-3 text-xs"
-      :class="fatigueScore > fatigueThreshold ? 'text-red-600' : 'text-[#6B6A65]'"
+      class="mt-3 rounded-lg px-2.5 py-2 text-caption font-medium"
+      :class="
+        fatigueScore > fatigueThreshold
+          ? 'bg-red-50 text-red-600'
+          : 'bg-primary-50 text-primary-800'
+      "
     >
-      예상 피로도 {{ fatigueScore }} ({{ fatigueScore > fatigueThreshold ? '높음' : '보통' }}) ·
-      적정선 {{ fatigueThreshold }} {{ fatigueScore > fatigueThreshold ? '초과' : '이내' }}
+      {{
+        fatigueScore > fatigueThreshold
+          ? `주의 · 피로도 ${fatigueScore}, 휴식 후 기록해 주세요`
+          : `예상 피로도 ${fatigueScore} · 적정 범위예요`
+      }}
     </p>
 
-    <Button class="mt-3" variant="outline" @click="emit('add-plan')">근무 계획 추가</Button>
+    <Button class="mt-3" @click="emit('primary-action')">{{ primaryActionLabel }}</Button>
   </div>
 </template>

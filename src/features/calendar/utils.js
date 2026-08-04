@@ -68,13 +68,3 @@ export function computeDayFatigue(dayEntries) {
   const average = rated.reduce((sum, entry) => sum + entry.fatigue, 0) / rated.length
   return Math.round(average * 20)
 }
-
-const STATUS_BADGE = {
-  planned: { label: '계획', className: 'bg-amber-100 text-amber-700' },
-  confirmed: { label: '확정', className: 'bg-blue-100 text-blue-700' },
-  settled: { label: '정산 완료', className: 'bg-emerald-100 text-emerald-700' },
-}
-
-export function getEntryStatusBadge(status) {
-  return STATUS_BADGE[status] ?? { label: '미정', className: 'bg-gray-100 text-gray-700' }
-}

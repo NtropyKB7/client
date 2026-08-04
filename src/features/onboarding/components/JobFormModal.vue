@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useModalStore } from '@/shared/store/modal'
 import { JOB_CATEGORIES, getJobCategory } from '@/shared/utils/jobCategory'
+import { INCOME_METHOD_OPTIONS } from '@/shared/utils/incomeMethod'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
 
@@ -47,15 +48,25 @@ const draft = ref(initialDraft())
 
 const isCategoryOpen = ref(false)
 const categoryFieldRef = ref(null)
+const isIncomeMethodOpen = ref(false)
+const incomeMethodFieldRef = ref(null)
 
 function selectCategory(value) {
   draft.value.category = value
   isCategoryOpen.value = false
 }
 
+function selectIncomeMethod(value) {
+  draft.value.incomeMethodLabel = value
+  isIncomeMethodOpen.value = false
+}
+
 function handleOutsideClick(event) {
   if (categoryFieldRef.value && !categoryFieldRef.value.contains(event.target)) {
     isCategoryOpen.value = false
+  }
+  if (incomeMethodFieldRef.value && !incomeMethodFieldRef.value.contains(event.target)) {
+    isIncomeMethodOpen.value = false
   }
 }
 
@@ -140,18 +151,58 @@ function cancel() {
 
     <div>
       <p class="mb-1.5 text-caption font-medium text-grey-400">소득 금액</p>
-      <div class="relative">
-        <input
-          v-model.number="draft.incomeAmount"
-          type="number"
-          inputmode="numeric"
-          placeholder="0"
-          class="w-full rounded-xl bg-grey-30 px-3.5 py-3 pr-9 text-body4 text-grey-500 placeholder:text-grey-300 focus:outline-none"
-        />
-        <span
-          class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-body4 text-grey-400"
-          >원</span
-        >
+      <div class="flex gap-2">
+        <div ref="incomeMethodFieldRef" class="relative w-[104px] shrink-0">
+          <button
+            type="button"
+            class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3 py-3 text-left text-body4 text-grey-500"
+            @click="isIncomeMethodOpen = !isIncomeMethodOpen"
+          >
+            {{ draft.incomeMethodLabel }}
+            <ChevronDownIcon
+              class="size-4 shrink-0 text-grey-400 transition-transform"
+              :class="isIncomeMethodOpen ? 'rotate-180' : ''"
+            />
+          </button>
+
+          <div
+            v-if="isIncomeMethodOpen"
+            class="absolute z-10 mt-1.5 w-max min-w-full rounded-2xl border border-grey-50 bg-grey-white p-1.5 shadow-lg"
+          >
+            <button
+              v-for="option in INCOME_METHOD_OPTIONS"
+              :key="option"
+              type="button"
+              class="flex w-full items-center justify-between gap-2 whitespace-nowrap rounded-xl px-3 py-2.5 text-left text-body4"
+              :class="
+                draft.incomeMethodLabel === option
+                  ? 'bg-primary-50 text-primary-800'
+                  : 'text-grey-500'
+              "
+              @click="selectIncomeMethod(option)"
+            >
+              {{ option }}
+              <CheckIcon
+                v-if="draft.incomeMethodLabel === option"
+                class="size-4 text-primary-600"
+              />
+            </button>
+          </div>
+        </div>
+
+        <div class="relative flex-1">
+          <input
+            v-model.number="draft.incomeAmount"
+            type="number"
+            inputmode="numeric"
+            placeholder="0"
+            class="w-full rounded-xl bg-grey-30 px-3.5 py-3 pr-9 text-body4 text-grey-500 placeholder:text-grey-300 focus:outline-none"
+          />
+          <span
+            class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-body4 text-grey-400"
+            >원</span
+          >
+        </div>
       </div>
     </div>
 

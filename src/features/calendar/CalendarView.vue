@@ -6,7 +6,7 @@ import { useOnboardingStore } from '@/features/onboarding/store'
 import { useModalStore } from '@/shared/store/modal'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
 import { useCalendarStore } from './store'
-import { fetchCalendarMonth, FATIGUE_THRESHOLD, GREETING_NAME, TODAY_DATE_KEY } from './api'
+import { fetchCalendarMonth, fetchWeatherForecast, FATIGUE_THRESHOLD, TODAY_DATE_KEY } from './api'
 import {
   getMonthGrid,
   formatDateKey,
@@ -16,15 +16,13 @@ import {
   computeEntryIncome,
   computeDayFatigue,
 } from './utils'
-import { JOB_CATEGORIES } from '@/shared/utils/jobCategory'
 import CalendarGrid from './components/CalendarGrid.vue'
+import WeatherAccordion from './components/WeatherAccordion.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
 import WorkPlanModal from './components/WorkPlanModal.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
-import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
-import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
 
 const onboardingStore = useOnboardingStore()
 const calendarStore = useCalendarStore()
@@ -47,6 +45,18 @@ const { data: monthConfig } = useQuery({
   queryFn: () => fetchCalendarMonth({ year: currentYear.value, month: currentMonth.value }),
 })
 
+// TODO(연동 테스트 전용): GET /api/weather 연동 확인용. 오늘 기준 5일치만 채워지며,
+// 캘린더 전체가 백엔드로 마이그레이션되면 fetchCalendarMonth의 내장 weather로 대체되어 제거된다.
+const { data: liveWeatherByDate } = useQuery({
+  queryKey: ['calendar', 'weather', 'live'],
+  queryFn: () => fetchWeatherForecast(),
+})
+
+const weatherByDate = computed(() => ({
+  ...monthConfig.value?.weatherByDate,
+  ...liveWeatherByDate.value,
+}))
+
 const grid = computed(() => getMonthGrid(currentYear.value, currentMonth.value))
 
 const cells = computed(() =>
@@ -62,7 +72,7 @@ const cells = computed(() =>
       status: computeDayStatus(dayEntries, isDefenseMode),
       categories: getUniqueCategories(dayEntries),
       isSelected: dateKey === selectedDateKey.value,
-      weather: monthConfig.value?.weatherByDate?.[dateKey] ?? null,
+      weather: weatherByDate.value[dateKey] ?? null,
     }
   }),
 )
@@ -90,9 +100,7 @@ function selectDate(date) {
 }
 
 const selectedEntries = computed(() => calendarStore.entriesForDate(selectedDateKey.value))
-const selectedWeather = computed(
-  () => monthConfig.value?.weatherByDate?.[selectedDateKey.value] ?? null,
-)
+const selectedWeather = computed(() => weatherByDate.value[selectedDateKey.value] ?? null)
 const selectedFatigue = computed(() => computeDayFatigue(selectedEntries.value))
 
 const monthPrefix = computed(
@@ -109,6 +117,15 @@ const plannedIncome = computed(() =>
     const job = onboardingStore.jobs.find((j) => j.id === entry.jobId)
     return sum + computeEntryIncome(entry, job)
   }, 0),
+)
+
+function isEntryConfirmable(entry) {
+  return entry.status === 'planned' && selectedDateKey.value <= TODAY_DATE_KEY
+}
+
+const unconfirmedEntry = computed(() => selectedEntries.value.find(isEntryConfirmable))
+const primaryActionLabel = computed(() =>
+  unconfirmedEntry.value ? '근무일지 작성' : '근무 계획 추가',
 )
 
 async function openCreateModal() {
@@ -128,6 +145,10 @@ async function openEditModal(entry) {
     { mode: 'edit', dateKey: entry.date, jobs: onboardingStore.jobs, entry },
     { position: 'bottom' },
   )
+  if (payload?.delete) {
+    openDeleteConfirm(entry)
+    return
+  }
   if (payload) {
     calendarStore.updateEntry(entry.id, payload)
   }
@@ -150,37 +171,40 @@ async function openDeleteConfirm(entry) {
     calendarStore.deleteEntry(entry.id)
   }
 }
+
+function handlePrimaryAction() {
+  if (unconfirmedEntry.value) {
+    openConfirmModal(unconfirmedEntry.value)
+  } else {
+    openCreateModal()
+  }
+}
+
+function openEntryDetail(entry) {
+  if (entry.status === 'settled') return
+  if (isEntryConfirmable(entry)) {
+    openConfirmModal(entry)
+  } else {
+    openEditModal(entry)
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col">
-    <AppHeader :title="`${GREETING_NAME}님의 이번 달 캘린더`" />
+    <AppHeader title="캘린더" />
 
     <div class="flex flex-col gap-4 px-4 py-6">
-      <div class="flex items-center justify-center gap-4">
-        <button type="button" aria-label="이전 달" @click="goPrevMonth">
-          <ChevronLeftIcon class="h-5 w-5 text-[#111110]" />
-        </button>
-        <p class="text-sm font-semibold text-[#111110]">{{ currentYear }}년 {{ currentMonth }}월</p>
-        <button type="button" aria-label="다음 달" @click="goNextMonth">
-          <ChevronRightIcon class="h-5 w-5 text-[#111110]" />
-        </button>
-      </div>
+      <CalendarGrid
+        :year="currentYear"
+        :month="currentMonth"
+        :cells="cells"
+        @prev-month="goPrevMonth"
+        @next-month="goNextMonth"
+        @select="selectDate"
+      />
 
-      <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
-        <CalendarGrid :cells="cells" @select="selectDate" />
-      </div>
-
-      <div class="flex gap-3 text-xs text-[#6B6A65]">
-        <span
-          v-for="category in JOB_CATEGORIES"
-          :key="category.value"
-          class="flex items-center gap-1"
-        >
-          <span class="h-2 w-2 rounded-full" :class="category.colorClass" />
-          {{ category.label }}
-        </span>
-      </div>
+      <WeatherAccordion :weather-by-date="weatherByDate" />
 
       <DayDetailPanel
         :date-key="selectedDateKey"
@@ -188,11 +212,9 @@ async function openDeleteConfirm(entry) {
         :weather="selectedWeather"
         :fatigue-score="selectedFatigue"
         :fatigue-threshold="FATIGUE_THRESHOLD"
-        :is-today="selectedDateKey === TODAY_DATE_KEY"
-        @add-plan="openCreateModal"
-        @edit-entry="openEditModal"
-        @confirm-entry="openConfirmModal"
-        @delete-entry="openDeleteConfirm"
+        :primary-action-label="primaryActionLabel"
+        @primary-action="handlePrimaryAction"
+        @open-entry="openEntryDetail"
       />
 
       <MonthSummaryBar
