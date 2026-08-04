@@ -11,6 +11,7 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const isOpen = ref(false)
+const openUpward = ref(false)
 const fieldRef = ref(null)
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
@@ -28,6 +29,15 @@ function selectMinute(minute) {
   emit('update:modelValue', `${hourValue.value || '00'}:${minute}`)
 }
 
+function toggleOpen() {
+  if (!isOpen.value && fieldRef.value) {
+    const rect = fieldRef.value.getBoundingClientRect()
+    const PANEL_HEIGHT_ESTIMATE = 180 // max-h-40(160px) + border/padding 여유분
+    openUpward.value = window.innerHeight - rect.bottom < PANEL_HEIGHT_ESTIMATE
+  }
+  isOpen.value = !isOpen.value
+}
+
 function handleOutsideClick(event) {
   if (fieldRef.value && !fieldRef.value.contains(event.target)) {
     isOpen.value = false
@@ -43,7 +53,7 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
     <button
       type="button"
       class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3 text-left text-body4"
-      @click="isOpen = !isOpen"
+      @click="toggleOpen"
     >
       <span :class="modelValue ? 'text-grey-500' : 'text-grey-300'">
         {{ modelValue || placeholder }}
@@ -56,7 +66,8 @@ onUnmounted(() => document.removeEventListener('mousedown', handleOutsideClick))
 
     <div
       v-if="isOpen"
-      class="absolute z-10 mt-1.5 flex w-full divide-x divide-grey-50 rounded-2xl border border-grey-50 bg-grey-white shadow-lg"
+      class="absolute z-10 flex w-full divide-x divide-grey-50 rounded-2xl border border-grey-50 bg-grey-white shadow-lg"
+      :class="openUpward ? 'bottom-full mb-1.5' : 'mt-1.5'"
     >
       <div class="max-h-40 flex-1 overflow-y-auto p-1.5">
         <button
