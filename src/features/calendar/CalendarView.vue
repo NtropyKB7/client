@@ -16,15 +16,12 @@ import {
   computeEntryIncome,
   computeDayFatigue,
 } from './utils'
-import { JOB_CATEGORIES } from '@/shared/utils/jobCategory'
 import CalendarGrid from './components/CalendarGrid.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
 import WorkPlanModal from './components/WorkPlanModal.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
-import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
-import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
 
 const onboardingStore = useOnboardingStore()
 const calendarStore = useCalendarStore()
@@ -167,30 +164,14 @@ async function openDeleteConfirm(entry) {
     <AppHeader title="캘린더" />
 
     <div class="flex flex-col gap-4 px-4 py-6">
-      <div class="flex items-center justify-center gap-4">
-        <button type="button" aria-label="이전 달" @click="goPrevMonth">
-          <ChevronLeftIcon class="h-5 w-5 text-[#111110]" />
-        </button>
-        <p class="text-sm font-semibold text-[#111110]">{{ currentYear }}년 {{ currentMonth }}월</p>
-        <button type="button" aria-label="다음 달" @click="goNextMonth">
-          <ChevronRightIcon class="h-5 w-5 text-[#111110]" />
-        </button>
-      </div>
-
-      <div class="rounded-xl border border-[#111110]/10 bg-white p-4">
-        <CalendarGrid :cells="cells" @select="selectDate" />
-      </div>
-
-      <div class="flex gap-3 text-xs text-[#6B6A65]">
-        <span
-          v-for="category in JOB_CATEGORIES"
-          :key="category.value"
-          class="flex items-center gap-1"
-        >
-          <span class="h-2 w-2 rounded-full" :class="category.colorClass" />
-          {{ category.label }}
-        </span>
-      </div>
+      <CalendarGrid
+        :year="currentYear"
+        :month="currentMonth"
+        :cells="cells"
+        @prev-month="goPrevMonth"
+        @next-month="goNextMonth"
+        @select="selectDate"
+      />
 
       <DayDetailPanel
         :date-key="selectedDateKey"
