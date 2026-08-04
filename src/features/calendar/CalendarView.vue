@@ -119,6 +119,15 @@ const plannedIncome = computed(() =>
   }, 0),
 )
 
+const unconfirmedEntry = computed(() =>
+  selectedDateKey.value <= TODAY_DATE_KEY
+    ? selectedEntries.value.find((entry) => entry.status === 'planned')
+    : null,
+)
+const primaryActionLabel = computed(() =>
+  unconfirmedEntry.value ? '근무일지 작성' : '근무 계획 추가',
+)
+
 async function openCreateModal() {
   const payload = await modalStore.open(
     WorkPlanModal,
@@ -136,6 +145,10 @@ async function openEditModal(entry) {
     { mode: 'edit', dateKey: entry.date, jobs: onboardingStore.jobs, entry },
     { position: 'bottom' },
   )
+  if (payload?.delete) {
+    openDeleteConfirm(entry)
+    return
+  }
   if (payload) {
     calendarStore.updateEntry(entry.id, payload)
   }
@@ -156,6 +169,23 @@ async function openDeleteConfirm(entry) {
   const confirmed = await modalStore.open(DeleteConfirmModal, { entry }, { position: 'center' })
   if (confirmed) {
     calendarStore.deleteEntry(entry.id)
+  }
+}
+
+function handlePrimaryAction() {
+  if (unconfirmedEntry.value) {
+    openConfirmModal(unconfirmedEntry.value)
+  } else {
+    openCreateModal()
+  }
+}
+
+function openEntryDetail(entry) {
+  if (entry.status === 'settled') return
+  if (entry.status === 'planned' && selectedDateKey.value === TODAY_DATE_KEY) {
+    openConfirmModal(entry)
+  } else {
+    openEditModal(entry)
   }
 }
 </script>
@@ -182,11 +212,9 @@ async function openDeleteConfirm(entry) {
         :weather="selectedWeather"
         :fatigue-score="selectedFatigue"
         :fatigue-threshold="FATIGUE_THRESHOLD"
-        :is-today="selectedDateKey === TODAY_DATE_KEY"
-        @add-plan="openCreateModal"
-        @edit-entry="openEditModal"
-        @confirm-entry="openConfirmModal"
-        @delete-entry="openDeleteConfirm"
+        :primary-action-label="primaryActionLabel"
+        @primary-action="handlePrimaryAction"
+        @open-entry="openEntryDetail"
       />
 
       <MonthSummaryBar
