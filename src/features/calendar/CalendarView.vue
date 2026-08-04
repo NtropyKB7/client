@@ -119,11 +119,11 @@ const plannedIncome = computed(() =>
   }, 0),
 )
 
-const unconfirmedEntry = computed(() =>
-  selectedDateKey.value <= TODAY_DATE_KEY
-    ? selectedEntries.value.find((entry) => entry.status === 'planned')
-    : null,
-)
+function isEntryConfirmable(entry) {
+  return entry.status === 'planned' && selectedDateKey.value <= TODAY_DATE_KEY
+}
+
+const unconfirmedEntry = computed(() => selectedEntries.value.find(isEntryConfirmable))
 const primaryActionLabel = computed(() =>
   unconfirmedEntry.value ? '근무일지 작성' : '근무 계획 추가',
 )
@@ -182,7 +182,7 @@ function handlePrimaryAction() {
 
 function openEntryDetail(entry) {
   if (entry.status === 'settled') return
-  if (entry.status === 'planned' && selectedDateKey.value === TODAY_DATE_KEY) {
+  if (isEntryConfirmable(entry)) {
     openConfirmModal(entry)
   } else {
     openEditModal(entry)
