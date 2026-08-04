@@ -17,6 +17,7 @@ import {
   computeDayFatigue,
 } from './utils'
 import CalendarGrid from './components/CalendarGrid.vue'
+import WeatherAccordion from './components/WeatherAccordion.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
 import WorkPlanModal from './components/WorkPlanModal.vue'
@@ -172,6 +173,8 @@ async function openDeleteConfirm(entry) {
         @next-month="goNextMonth"
         @select="selectDate"
       />
+
+      <WeatherAccordion :weather-by-date="weatherByDate" />
 
       <DayDetailPanel
         :date-key="selectedDateKey"
