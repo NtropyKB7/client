@@ -14,7 +14,8 @@ const isOpen = ref(false)
 const fieldRef = ref(null)
 
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'))
-const MINUTES = ['00', '10', '20', '30', '40', '50']
+// 5분 단위로 제한 — 근무 시간 입력에 충분한 정밀도이며 선택지 수를 관리 가능한 수준으로 유지한다.
+const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'))
 
 const hourValue = computed(() => props.modelValue.split(':')[0] ?? '')
 const minuteValue = computed(() => props.modelValue.split(':')[1] ?? '')
