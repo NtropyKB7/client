@@ -6,21 +6,37 @@ defineProps({
   plannedIncome: { type: Number, required: true },
   targetIncome: { type: Number, required: true },
 })
+
+function progressPercent(value, target) {
+  if (!target) return 0
+  return Math.min(100, Math.round((value / target) * 100))
+}
 </script>
 
 <template>
-  <div class="grid grid-cols-2 gap-3">
-    <div class="rounded-xl border border-[#111110]/10 bg-white p-4 text-center">
-      <p class="text-xs text-[#6B6A65]">계획 근무 시간</p>
-      <p class="mt-1 text-sm font-semibold text-[#111110]">
-        {{ plannedHours }}h / {{ targetHours }}h
+  <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
+    <div class="flex items-center justify-between">
+      <p class="text-body3 text-grey-500">계획 근무 시간</p>
+      <p class="text-caption text-grey-400">{{ plannedHours }} / {{ targetHours }}시간</p>
+    </div>
+    <div class="mt-2 h-1 rounded-full bg-grey-50">
+      <div
+        class="h-1 rounded-full bg-primary-500"
+        :style="{ width: `${progressPercent(plannedHours, targetHours)}%` }"
+      />
+    </div>
+
+    <div class="mt-4 flex items-center justify-between">
+      <p class="text-body3 text-grey-500">계획 근무 소득</p>
+      <p class="text-caption text-grey-400">
+        {{ Math.round(plannedIncome / 10000) }} / {{ Math.round(targetIncome / 10000) }}만원
       </p>
     </div>
-    <div class="rounded-xl border border-[#111110]/10 bg-white p-4 text-center">
-      <p class="text-xs text-[#6B6A65]">계획 근무 소득</p>
-      <p class="mt-1 text-sm font-semibold text-[#111110]">
-        {{ plannedIncome.toLocaleString() }}원 / {{ targetIncome.toLocaleString() }}원
-      </p>
+    <div class="mt-2 h-1 rounded-full bg-grey-50">
+      <div
+        class="h-1 rounded-full bg-primary-500"
+        :style="{ width: `${progressPercent(plannedIncome, targetIncome)}%` }"
+      />
     </div>
   </div>
 </template>
