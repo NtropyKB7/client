@@ -5,6 +5,7 @@ import { useModalStore } from '@/shared/store/modal'
 import Button from '@/shared/components/Button.vue'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
+import TimePickerField from './TimePickerField.vue'
 
 const props = defineProps({
   mode: { type: String, required: true }, // 'create' | 'edit' | 'confirm'
@@ -49,7 +50,11 @@ const FATIGUE_LABELS = { 1: '여유', 3: '보통', 5: '힘듦' }
 
 const title = computed(() => {
   const [, month, day] = props.dateKey.split('-')
-  const label = isConfirmMode.value ? '근무일지 확정' : '근무 시간 계획'
+  const label = isConfirmMode.value
+    ? '근무일지 확정'
+    : isEditMode.value
+      ? '근무 시간 계획 수정'
+      : '근무 시간 계획'
   return `${Number(month)}월 ${Number(day)}일 ${label}`
 })
 
@@ -122,22 +127,14 @@ function requestDelete() {
     </div>
 
     <div class="grid grid-cols-2 gap-2">
-      <label class="block">
+      <div>
         <p class="mb-1.5 text-caption font-medium text-grey-400">시작 시간</p>
-        <input
-          v-model="draft.startTime"
-          type="time"
-          class="w-full rounded-xl bg-grey-30 px-3.5 py-3 text-body4 text-grey-500 focus:outline-none"
-        />
-      </label>
-      <label class="block">
+        <TimePickerField v-model="draft.startTime" placeholder="예) 09:00" />
+      </div>
+      <div>
         <p class="mb-1.5 text-caption font-medium text-grey-400">종료 시간</p>
-        <input
-          v-model="draft.endTime"
-          type="time"
-          class="w-full rounded-xl bg-grey-30 px-3.5 py-3 text-body4 text-grey-500 focus:outline-none"
-        />
-      </label>
+        <TimePickerField v-model="draft.endTime" placeholder="예) 18:00" />
+      </div>
     </div>
 
     <label v-if="isConfirmMode && isCountJob" class="block">
