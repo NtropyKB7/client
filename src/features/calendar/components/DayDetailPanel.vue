@@ -1,6 +1,5 @@
 <!-- src/features/calendar/components/DayDetailPanel.vue -->
 <script setup>
-import { getJobCategory } from '@/shared/utils/jobCategory'
 import Button from '@/shared/components/Button.vue'
 
 defineProps({
@@ -8,7 +7,7 @@ defineProps({
   entries: { type: Array, required: true },
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
-  fatigueThreshold: { type: Number, required: true },
+  isFatigueOverThreshold: { type: Boolean, default: false },
   primaryActionLabel: { type: String, required: true },
 })
 
@@ -32,14 +31,12 @@ const emit = defineEmits(['primary-action', 'open-entry'])
       v-for="entry in entries"
       :key="entry.id"
       type="button"
-      class="mt-2 flex w-full items-center justify-between rounded-[9px] bg-grey-30 px-2.5 py-2 text-left disabled:opacity-60"
-      :disabled="entry.status === 'settled'"
+      class="mt-2 flex w-full items-center justify-between rounded-[9px] bg-grey-30 px-2.5 py-2 text-left"
       @click="emit('open-entry', entry)"
     >
       <span class="flex items-center gap-2">
         <span
-          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] text-[10px] font-bold text-white"
-          :class="getJobCategory(entry.category).colorClass"
+          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] bg-gray-400 text-[10px] font-bold text-white"
         >
           {{ entry.jobName.slice(0, 1) }}
         </span>
@@ -51,14 +48,10 @@ const emit = defineEmits(['primary-action', 'open-entry'])
     <p
       v-if="fatigueScore !== null"
       class="mt-3 rounded-lg px-2.5 py-2 text-caption font-medium"
-      :class="
-        fatigueScore > fatigueThreshold
-          ? 'bg-red-50 text-red-600'
-          : 'bg-primary-50 text-primary-800'
-      "
+      :class="isFatigueOverThreshold ? 'bg-red-50 text-red-600' : 'bg-primary-50 text-primary-800'"
     >
       {{
-        fatigueScore > fatigueThreshold
+        isFatigueOverThreshold
           ? `주의 · 피로도 ${fatigueScore}, 휴식 후 기록해 주세요`
           : `예상 피로도 ${fatigueScore} · 적정 범위예요`
       }}

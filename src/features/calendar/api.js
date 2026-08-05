@@ -1,29 +1,8 @@
-import axios from 'axios'
 import { requestWithMock } from '@/shared/api/request'
-
-export const FATIGUE_THRESHOLD = 65
 
 export const MONTH_SUMMARY_TARGET = { hours: 40, income: 2000000 }
 
-// "오늘"을 2026-07-16으로 가정한다(실제 백엔드 연동 전까지 고정).
-export const TODAY_DATE_KEY = '2026-07-16'
-
-// 이후 7일(07-16~07-22)치 날씨만 mock으로 채운다.
-// TODO: 외부 날씨 API 연동 후 이 mock을 실제 예보 데이터로 교체.
-const WEATHER_BY_DATE = {
-  '2026-07-16': { icon: '☁️', label: '비·우천 할증' },
-  '2026-07-17': { icon: '🌧️', label: '비·우천 할증' },
-  '2026-07-18': { icon: '⛅', label: '흐림' },
-  '2026-07-19': { icon: '☀️', label: '맑음' },
-  '2026-07-20': { icon: '☀️', label: '맑음' },
-  '2026-07-21': { icon: '🌦️', label: '소나기 주의' },
-  '2026-07-22': { icon: '⛅', label: '흐림' },
-}
-
-// TODO(연동 테스트 전용): 백엔드 GET /api/weather 연동 확인용 코드.
-// /api/weather는 오늘 기준 5일치만 반환하고, entries/jobs와 무관하게 날씨만 따로 내려준다.
-// 캘린더 전체가 /api/calendar/daily·monthly(날씨 내장)로 마이그레이션되면 이 블록은 통째로 제거된다.
-const WEATHER_API_BASE_URL = import.meta.env.VITE_WEATHER_API_BASE_URL
+// userId는 axiosInstance 요청 인터셉터가 인증 상태에 따라 자동으로 붙여준다(FALLBACK_USER_ID 참고).
 const SEOUL_COORDS = { latitude: 37.5665, longitude: 126.978 }
 
 const SKY_STATUS_ICON = {
@@ -39,13 +18,23 @@ const PRECIPITATION_ICON = {
   소나기: '🌦️',
 }
 
-function forecastDateToKey([year, month, day]) {
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+
+function dateArrayToKey([year, month, day]) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function timeArrayToLabel(time) {
+  if (!time) return null
+  const [hour, minute] = time
+  return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
 // skyStatus/precipitationType은 swagger에 enum이 없는 한글 문자열이라 기상청 단기예보 통상값으로
 // 추측 매핑한다. 매핑에 없는 값은 raw 문자열을 label로 그대로 보여준다.
-function mapForecastToWeather({ skyStatus, precipitationType, rainSurcharge }) {
+function mapForecastToWeather(forecast) {
+  if (!forecast) return null
+  const { skyStatus, precipitationType, rainSurcharge } = forecast
   const hasPrecipitation = Boolean(precipitationType) && precipitationType !== '없음'
   const icon = hasPrecipitation
     ? (PRECIPITATION_ICON[precipitationType] ?? '🌧️')
@@ -54,24 +43,56 @@ function mapForecastToWeather({ skyStatus, precipitationType, rainSurcharge }) {
   return { icon, label: rainSurcharge ? `${label}·우천 할증` : label }
 }
 
-// VITE_WEATHER_API_BASE_URL 미설정 시(다른 개발자 환경) 조용히 스킵하고 빈 맵을 반환한다.
-export async function fetchWeatherForecast(coords = SEOUL_COORDS) {
-  if (!WEATHER_API_BASE_URL) return {}
-  try {
-    const { data } = await axios.get(`${WEATHER_API_BASE_URL}/api/weather`, { params: coords })
-    const forecasts = data?.data?.forecasts ?? []
-    return Object.fromEntries(
-      forecasts.map((forecast) => [
-        forecastDateToKey(forecast.date),
-        mapForecastToWeather(forecast),
-      ]),
-    )
-  } catch {
-    return {}
+function normalizeMonthlySummary(data) {
+  return {
+    year: data.year,
+    month: data.month,
+    summary: {
+      plannedHours: data.summary?.plannedHours ?? 0,
+      actualHours: data.summary?.actualHours ?? 0,
+      expectedIncome: data.summary?.expectedIncome ?? 0,
+      targetAmount: data.summary?.targetAmount ?? null,
+    },
+    days: (data.days ?? []).map((day) => ({
+      dateKey: dateArrayToKey(day.date),
+      settlementStatus: day.settlementStatus,
+      jobs: day.jobs ?? [],
+      weather: mapForecastToWeather(day.weather),
+    })),
   }
 }
 
-// TODO: 백엔드 근무 계획/확정 API 연동 후 이 시드 데이터는 최초 진입 시 서버 응답으로 교체.
+function normalizeDailySummary(data) {
+  return {
+    dateKey: dateArrayToKey(data.date),
+    dayOfWeek: data.dayOfWeek,
+    works: (data.works ?? []).map((work) => ({
+      workId: work.workId,
+      jobId: work.jobId,
+      jobName: work.jobName,
+      startTime: timeArrayToLabel(work.startTime),
+      endTime: timeArrayToLabel(work.endTime),
+      status: work.status,
+    })),
+    fatigue: {
+      score: data.fatigue?.score ?? 0,
+      level: data.fatigue?.level ?? null,
+      isOverThreshold: data.fatigue?.isOverThreshold ?? false,
+    },
+    weather: mapForecastToWeather(data.weather),
+  }
+}
+
+function normalizeWeatherByDate(data) {
+  const map = {}
+  for (const forecast of data.forecasts ?? []) {
+    map[dateArrayToKey(forecast.date)] = mapForecastToWeather(forecast)
+  }
+  return map
+}
+
+// TODO(연동 테스트 전용): 백엔드 근무 계획/확정 API(work-log-controller) 연동 후 이 시드 데이터는
+// calendarStore 초기값 용도로만 남는다(CalendarView는 더 이상 이 데이터를 직접 그리지 않음).
 export const SEED_ENTRIES_2026_07 = [
   {
     id: 'seed-1',
@@ -195,13 +216,136 @@ export const SEED_ENTRIES_2026_07 = [
   },
 ]
 
+const MOCK_WEATHER_BY_DATE = {
+  '2026-07-16': { icon: '☁️', label: '비·우천 할증' },
+  '2026-07-17': { icon: '🌧️', label: '비·우천 할증' },
+  '2026-07-18': { icon: '⛅', label: '흐림' },
+  '2026-07-19': { icon: '☀️', label: '맑음' },
+  '2026-07-20': { icon: '☀️', label: '맑음' },
+  '2026-07-21': { icon: '🌦️', label: '소나기 주의' },
+  '2026-07-22': { icon: '⛅', label: '흐림' },
+}
+
+// 오늘 기준 5일치 목업 날씨 패턴(고정 시드 데이터와 달리 날짜에 의존하지 않게 순환 사용).
+const MOCK_WEATHER_PATTERN = [
+  { icon: '☀️', label: '맑음' },
+  { icon: '⛅', label: '흐림' },
+  { icon: '🌧️', label: '비·우천 할증' },
+  { icon: '🌦️', label: '소나기 주의' },
+  { icon: '☀️', label: '맑음' },
+]
+
+function buildMockWeatherByDate(baseDate = new Date()) {
+  const map = {}
+  for (let offset = 0; offset < 5; offset += 1) {
+    const date = new Date(baseDate)
+    date.setDate(date.getDate() + offset)
+    const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    map[dateKey] = MOCK_WEATHER_PATTERN[offset]
+  }
+  return map
+}
+
+const MOCK_FATIGUE_THRESHOLD = 65
+
+function mockEntryHours(entry) {
+  const [startHour, startMinute] = entry.startTime.split(':').map(Number)
+  const [endHour, endMinute] = entry.endTime.split(':').map(Number)
+  let hours = endHour + endMinute / 60 - (startHour + startMinute / 60)
+  if (hours < 0) hours += 24
+  return hours
+}
+
+function buildMockMonthlySummary(year, month) {
+  const prefix = `${year}-${String(month).padStart(2, '0')}`
+  const monthEntries = SEED_ENTRIES_2026_07.filter((entry) => entry.date.startsWith(prefix))
+
+  const entriesByDate = new Map()
+  for (const entry of monthEntries) {
+    if (!entriesByDate.has(entry.date)) entriesByDate.set(entry.date, [])
+    entriesByDate.get(entry.date).push(entry)
+  }
+
+  const days = [...entriesByDate.entries()].map(([dateKey, dayEntries]) => ({
+    dateKey,
+    settlementStatus: dayEntries.every((entry) => entry.status === 'settled')
+      ? 'COMPLETED'
+      : 'PENDING',
+    jobs: [...new Map(dayEntries.map((entry) => [entry.jobId, entry])).values()].map((entry) => ({
+      jobId: entry.jobId,
+      jobName: entry.jobName,
+    })),
+    weather: MOCK_WEATHER_BY_DATE[dateKey] ?? null,
+  }))
+
+  const plannedHours = Math.round(
+    monthEntries.reduce((sum, entry) => sum + mockEntryHours(entry), 0),
+  )
+  const actualHours = Math.round(
+    monthEntries
+      .filter((entry) => entry.status === 'settled')
+      .reduce((sum, entry) => sum + mockEntryHours(entry), 0),
+  )
+
+  return {
+    year,
+    month,
+    summary: { plannedHours, actualHours, expectedIncome: 0, targetAmount: null },
+    days,
+  }
+}
+
+function buildMockDailySummary(dateKey) {
+  const dayEntries = SEED_ENTRIES_2026_07.filter((entry) => entry.date === dateKey)
+  const rated = dayEntries.filter((entry) => typeof entry.fatigue === 'number')
+  const score =
+    rated.length === 0
+      ? 0
+      : Math.round((rated.reduce((sum, entry) => sum + entry.fatigue, 0) / rated.length) * 20)
+
+  return {
+    dateKey,
+    dayOfWeek: WEEKDAY_LABELS[new Date(dateKey).getDay()],
+    works: dayEntries.map((entry) => ({
+      workId: entry.id,
+      jobId: entry.jobId,
+      jobName: entry.jobName,
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      status: entry.status.toUpperCase(),
+    })),
+    fatigue: {
+      score,
+      level: score > MOCK_FATIGUE_THRESHOLD ? 'HIGH' : 'LOW',
+      isOverThreshold: score > MOCK_FATIGUE_THRESHOLD,
+    },
+    weather: MOCK_WEATHER_BY_DATE[dateKey] ?? null,
+  }
+}
+
+// axiosInstance 응답 인터셉터가 ApiResponse<T> 봉투를 이미 풀어주므로, 여기서는
+// response.data(=payload)를 정규화해 mock과 동일한 모양으로 맞추기만 하면 된다.
 export async function fetchCalendarMonth({ year, month }) {
-  const mockConfig =
-    year === 2026 && month === 7
-      ? { weatherByDate: WEATHER_BY_DATE, summaryTarget: MONTH_SUMMARY_TARGET }
-      : { weatherByDate: {}, summaryTarget: MONTH_SUMMARY_TARGET }
-  // TODO: 백엔드 연동 후 mockConfig의 연/월 분기 제거(모든 달이 실제 데이터를 반환)
-  return requestWithMock(mockConfig, (client) =>
-    client.get('/calendar/month', { params: { year, month } }),
+  return requestWithMock(buildMockMonthlySummary(year, month), (client) =>
+    client
+      .get('/calendar/monthly', { params: { year, month, ...SEOUL_COORDS } })
+      .then((response) => ({ data: normalizeMonthlySummary(response.data) })),
+  )
+}
+
+export async function fetchCalendarDay({ dateKey }) {
+  return requestWithMock(buildMockDailySummary(dateKey), (client) =>
+    client
+      .get('/calendar/daily', { params: { date: dateKey, ...SEOUL_COORDS } })
+      .then((response) => ({ data: normalizeDailySummary(response.data) })),
+  )
+}
+
+// 오늘부터 5일치 날씨(weather-controller). date 문자열을 key로 하는 {icon,label} 맵을 반환한다.
+export async function fetchWeatherForecast() {
+  return requestWithMock(buildMockWeatherByDate(), (client) =>
+    client
+      .get('/weather', { params: { ...SEOUL_COORDS } })
+      .then((response) => ({ data: normalizeWeatherByDate(response.data) })),
   )
 }
