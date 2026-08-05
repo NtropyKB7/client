@@ -16,16 +16,16 @@ function confirmDelete() {
 
 <template>
   <div class="flex flex-col gap-4">
-    <h2 class="text-center text-base font-semibold text-[#111110]">잡을 삭제할까요?</h2>
+    <h2 class="text-center text-base font-semibold text-[#111110]">잡을 비활성화할까요?</h2>
     <p class="text-center text-sm text-[#6B6A65]">
-      삭제하면 해당 잡의 기록과 설정이 사라지며 복구할 수 없어요.
+      비활성화하면 목록에서 보이지 않게 돼요. 지난 근무 기록은 그대로 남아요.
     </p>
     <div class="flex gap-2">
       <div class="flex-1">
         <Button variant="outline" @click="cancel">취소</Button>
       </div>
       <div class="flex-1">
-        <Button variant="danger" @click="confirmDelete">삭제</Button>
+        <Button variant="danger" @click="confirmDelete">비활성화</Button>
       </div>
     </div>
   </div>
