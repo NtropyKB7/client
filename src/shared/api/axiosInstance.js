@@ -14,10 +14,25 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use((config) => {
   const authStore = useAuthStore()
   const hasRealAccessToken = authStore.accessToken && authStore.accessToken !== 'debug'
+
+  // charset 없이 보내면 한글이 포함된 요청 바디에서 400이 남(백엔드 실측 확인).
+  config.headers['Content-Type'] = 'application/json; charset=UTF-8'
+
   if (hasRealAccessToken) {
     config.headers.Authorization = `Bearer ${authStore.accessToken}`
   } else {
     config.params = { userId: FALLBACK_USER_ID, ...config.params }
+    // POST 요청 바디(JobCreateRequest, WorkLogRegisterRequest 등)는 userId를 쿼리가 아니라
+    // 바디 필드로 요구한다. PUT/PATCH는 바디에 userId가 없는 스펙이라 여기서 건드리지 않는다.
+    if (
+      config.method === 'post' &&
+      config.data &&
+      typeof config.data === 'object' &&
+      !Array.isArray(config.data) &&
+      config.data.userId === undefined
+    ) {
+      config.data = { userId: FALLBACK_USER_ID, ...config.data }
+    }
   }
   return config
 })
