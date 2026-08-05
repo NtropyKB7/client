@@ -30,6 +30,12 @@ function timeArrayToLabel(time) {
   return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
 }
 
+function timeLabelToArray(label) {
+  if (!label) return null
+  const [hour, minute] = label.split(':').map(Number)
+  return [hour, minute]
+}
+
 // skyStatus/precipitationType은 swagger에 enum이 없는 한글 문자열이라 기상청 단기예보 통상값으로
 // 추측 매핑한다. 매핑에 없는 값은 raw 문자열을 label로 그대로 보여준다.
 function mapForecastToWeather(forecast) {
@@ -348,4 +354,62 @@ export async function fetchWeatherForecast() {
       .get('/weather', { params: { ...SEOUL_COORDS } })
       .then((response) => ({ data: normalizeWeatherByDate(response.data) })),
   )
+}
+
+// ── work-log-controller ────────────────────────────────────────────────────
+// calendarStore(localStorage)를 은퇴시키면서, 근무 등록/수정/확정/삭제는 이제 서버를 직접 호출하고
+// 결과는 CalendarView가 캘린더 쿼리를 invalidate해서 반영한다. mock 모드(백엔드 미연동)에서는
+// 그럴듯한 성공 응답만 흉내내고 실제로는 아무 데도 저장하지 않는다(로컬 영속 스토어가 없어짐에 따른
+// 의도된 트레이드오프).
+
+function workLogBody({ jobId, startTime, endTime, taskCount, fatigue }) {
+  return {
+    jobId,
+    startTime: timeLabelToArray(startTime),
+    endTime: timeLabelToArray(endTime),
+    taskCount: taskCount ?? 0,
+    fatigue: fatigue ?? 0,
+  }
+}
+
+export async function createWorkPlan({ jobId, dateKey, startTime, endTime }) {
+  return requestWithMock({ workId: `mock-${Date.now()}` }, (client) =>
+    client.post('/works/plan', {
+      workDate: dateKey,
+      ...workLogBody({ jobId, startTime, endTime }),
+    }),
+  )
+}
+
+export async function createWorkActual({ jobId, dateKey, startTime, endTime, taskCount, fatigue }) {
+  return requestWithMock({ workId: `mock-${Date.now()}` }, (client) =>
+    client.post('/works/actual', {
+      workDate: dateKey,
+      ...workLogBody({ jobId, startTime, endTime, taskCount, fatigue }),
+    }),
+  )
+}
+
+// 계획된 근무(workId 존재)를 실제 근무일지로 확정한다. 기존 workId를 대상으로 하는 PATCH이므로
+// 새 레코드를 만드는 POST /api/works/actual(직접 실적 등록용, 이번엔 미사용)과는 다르다.
+export async function confirmWorkLog(workId, { jobId, startTime, endTime, taskCount, fatigue }) {
+  return requestWithMock(null, (client) =>
+    client.patch(
+      `/works/${workId}/confirm`,
+      workLogBody({ jobId, startTime, endTime, taskCount, fatigue }),
+    ),
+  )
+}
+
+export async function editWorkLog(workId, { jobId, startTime, endTime, taskCount, fatigue }) {
+  return requestWithMock(null, (client) =>
+    client.patch(
+      `/works/${workId}/edit`,
+      workLogBody({ jobId, startTime, endTime, taskCount, fatigue }),
+    ),
+  )
+}
+
+export async function deleteWorkLog(workId) {
+  return requestWithMock(null, (client) => client.delete(`/works/${workId}`))
 }

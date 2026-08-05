@@ -1,13 +1,19 @@
 <!-- src/features/calendar/CalendarView.vue -->
 <script setup>
 import { computed, ref } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
-import { useToastStore } from '@/shared/store/toast'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useModalStore } from '@/shared/store/modal'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
+import { fetchJobs } from '@/features/onboarding/api'
 import {
   fetchCalendarMonth,
   fetchCalendarDay,
   fetchWeatherForecast,
+  createWorkPlan,
+  createWorkActual,
+  confirmWorkLog,
+  editWorkLog,
+  deleteWorkLog,
   MONTH_SUMMARY_TARGET,
 } from './api'
 import { getMonthGrid, formatDateKey } from './utils'
@@ -15,9 +21,12 @@ import CalendarGrid from './components/CalendarGrid.vue'
 import WeatherAccordion from './components/WeatherAccordion.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
+import WorkPlanModal from './components/WorkPlanModal.vue'
+import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
 
-const toastStore = useToastStore()
+const modalStore = useModalStore()
+const queryClient = useQueryClient()
 const defenseModeStore = useDefenseModeStore()
 
 function isDateInDefenseRange(dateKey) {
@@ -28,9 +37,12 @@ function isDateInDefenseRange(dateKey) {
 }
 
 const today = new Date()
+const TODAY_DATE_KEY = formatDateKey(today)
 const currentYear = ref(today.getFullYear())
 const currentMonth = ref(today.getMonth() + 1)
-const selectedDateKey = ref(formatDateKey(today))
+const selectedDateKey = ref(TODAY_DATE_KEY)
+
+const { data: jobs } = useQuery({ queryKey: ['jobs'], queryFn: fetchJobs })
 
 const { data: monthData } = useQuery({
   queryKey: computed(() => ['calendar', 'month', currentYear.value, currentMonth.value]),
@@ -48,6 +60,10 @@ const { data: liveWeatherByDate } = useQuery({
   queryKey: ['calendar', 'weather', 'live'],
   queryFn: () => fetchWeatherForecast(),
 })
+
+function invalidateCalendar() {
+  queryClient.invalidateQueries({ queryKey: ['calendar'] })
+}
 
 const daysByDate = computed(() => {
   const map = new Map()
@@ -115,6 +131,7 @@ const selectedEntries = computed(
   () =>
     dayData.value?.works.map((work) => ({
       id: work.workId,
+      jobId: work.jobId,
       jobName: work.jobName,
       startTime: work.startTime ?? '-',
       endTime: work.endTime ?? '-',
@@ -135,10 +152,115 @@ const targetIncome = computed(
   () => monthData.value?.summary?.targetAmount ?? MONTH_SUMMARY_TARGET.income,
 )
 
-// TODO(work-log-controller 연동 전용): 근무 등록/수정/확정/삭제는 서버 jobId를 아직 확보하지 못해
-// (onboarding 잡이 로컬 mock) 이번 패스에서는 비활성화하고 안내 토스트만 띄운다.
-function notifyWorkManagementComingSoon() {
-  toastStore.show('근무 관리 기능은 준비 중이에요')
+// 오늘(또는 과거)로 예정된, 아직 확정 안 된 근무만 "근무일지 작성"으로 확정 가능.
+function isEntryConfirmable(entry) {
+  return entry.status === 'PLANNED' && selectedDateKey.value <= TODAY_DATE_KEY
+}
+
+const unconfirmedEntry = computed(() => selectedEntries.value.find(isEntryConfirmable))
+// 오늘 이전 날짜는 계획 없이도 "근무일지 작성"으로 실제 근무를 바로 추가할 수 있어야 한다.
+const isPastDate = computed(() => selectedDateKey.value < TODAY_DATE_KEY)
+const primaryActionLabel = computed(() =>
+  unconfirmedEntry.value || isPastDate.value ? '근무일지 작성' : '근무 계획 추가',
+)
+
+async function openCreateModal() {
+  const payload = await modalStore.open(
+    WorkPlanModal,
+    { mode: 'create', dateKey: selectedDateKey.value, jobs: jobs.value ?? [], entry: null },
+    { position: 'bottom' },
+  )
+  if (payload) {
+    await createWorkPlan({
+      jobId: payload.jobId,
+      dateKey: selectedDateKey.value,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+    })
+    invalidateCalendar()
+  }
+}
+
+async function openEditModal(entry) {
+  const payload = await modalStore.open(
+    WorkPlanModal,
+    { mode: 'edit', dateKey: selectedDateKey.value, jobs: jobs.value ?? [], entry },
+    { position: 'bottom' },
+  )
+  if (payload?.delete) {
+    openDeleteConfirm(entry)
+    return
+  }
+  if (payload) {
+    await editWorkLog(entry.id, {
+      jobId: payload.jobId,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      taskCount: payload.count,
+      fatigue: payload.fatigue,
+    })
+    invalidateCalendar()
+  }
+}
+
+// entry가 있으면 기존 계획(workId)을 확정하고, entry가 없으면(계획에 없던 근무) 새 실적을 등록한다.
+async function openConfirmModal(entry) {
+  const payload = await modalStore.open(
+    WorkPlanModal,
+    { mode: 'confirm', dateKey: selectedDateKey.value, jobs: jobs.value ?? [], entry },
+    { position: 'bottom' },
+  )
+  if (payload?.delete) {
+    openDeleteConfirm(entry)
+    return
+  }
+  if (!payload) return
+
+  if (entry) {
+    await confirmWorkLog(entry.id, {
+      jobId: payload.jobId,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      taskCount: payload.count,
+      fatigue: payload.fatigue,
+    })
+  } else {
+    await createWorkActual({
+      jobId: payload.jobId,
+      dateKey: selectedDateKey.value,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      taskCount: payload.count,
+      fatigue: payload.fatigue,
+    })
+  }
+  invalidateCalendar()
+}
+
+async function openDeleteConfirm(entry) {
+  const confirmed = await modalStore.open(DeleteConfirmModal, { entry }, { position: 'center' })
+  if (confirmed) {
+    await deleteWorkLog(entry.id)
+    invalidateCalendar()
+  }
+}
+
+// "근무일지 작성"은 그 날 기존 계획이 있어도 항상 새 실적을 추가한다(기존 계획 확정은
+// 목록에서 해당 항목을 눌러야 함 — openEntryDetail 참고).
+function handlePrimaryAction() {
+  if (unconfirmedEntry.value || isPastDate.value) {
+    openConfirmModal(null)
+  } else {
+    openCreateModal()
+  }
+}
+
+function openEntryDetail(entry) {
+  if (isEntryConfirmable(entry)) {
+    openConfirmModal(entry)
+  } else {
+    openEditModal(entry)
+  }
 }
 </script>
 
@@ -164,9 +286,9 @@ function notifyWorkManagementComingSoon() {
         :weather="selectedWeather"
         :fatigue-score="selectedFatigueScore"
         :is-fatigue-over-threshold="selectedFatigueOverThreshold"
-        primary-action-label="근무 계획 추가"
-        @primary-action="notifyWorkManagementComingSoon"
-        @open-entry="notifyWorkManagementComingSoon"
+        :primary-action-label="primaryActionLabel"
+        @primary-action="handlePrimaryAction"
+        @open-entry="openEntryDetail"
       />
 
       <MonthSummaryBar

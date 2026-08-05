@@ -48,10 +48,13 @@ const isEditMode = computed(() => props.mode === 'edit')
 
 const FATIGUE_LABELS = { 1: '여유', 3: '보통', 5: '힘듦' }
 
+// confirm 모드는 entry 유무로 나뉜다: entry가 있으면 그 계획을 확정, 없으면 계획 없이 새 근무일지를 작성.
+const confirmActionLabel = computed(() => (props.entry ? '근무일지 확정' : '근무일지 작성'))
+
 const title = computed(() => {
   const [, month, day] = props.dateKey.split('-')
   const label = isConfirmMode.value
-    ? '근무일지 확정'
+    ? confirmActionLabel.value
     : isEditMode.value
       ? '근무 시간 계획 수정'
       : '근무 시간 계획'
@@ -66,8 +69,6 @@ function submit() {
   if (!job) return
   const payload = {
     jobId: job.id,
-    jobName: job.name,
-    category: job.category,
     startTime: draft.value.startTime,
     endTime: draft.value.endTime,
     count: isConfirmMode.value
@@ -76,7 +77,6 @@ function submit() {
         : null
       : (props.entry?.count ?? null),
     fatigue: isConfirmMode.value ? draft.value.fatigue : (props.entry?.fatigue ?? null),
-    status: isConfirmMode.value ? 'confirmed' : (props.entry?.status ?? 'planned'),
   }
   modalStore.close(payload)
 }
@@ -176,11 +176,11 @@ function requestDelete() {
     </p>
 
     <Button :disabled="!isValid" @click="submit">
-      {{ isConfirmMode ? '근무일지 확정' : '근무 시간 저장' }}
+      {{ isConfirmMode ? confirmActionLabel : '근무 시간 저장' }}
     </Button>
 
     <button
-      v-if="isEditMode"
+      v-if="(isEditMode || isConfirmMode) && entry"
       type="button"
       class="text-center text-caption text-red-600 underline"
       @click="requestDelete"
