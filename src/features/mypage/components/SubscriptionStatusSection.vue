@@ -116,9 +116,13 @@ async function handleRevokeCancel() {
       <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
         <p class="text-body1 text-grey-500">결제 내역</p>
         <div class="mt-2 flex flex-col">
-          <div
+          <component
+            :is="bill.receiptUrl ? 'a' : 'div'"
             v-for="bill in paymentHistory"
             :key="bill.id"
+            v-bind="
+              bill.receiptUrl ? { href: bill.receiptUrl, target: '_blank', rel: 'noopener noreferrer' } : {}
+            "
             class="flex items-center justify-between gap-2 border-b border-grey-50 py-3 last:border-b-0"
           >
             <div class="min-w-0 flex-1">
@@ -129,8 +133,8 @@ async function handleRevokeCancel() {
                 }}
               </p>
             </div>
-            <ChevronRightIcon class="size-5 shrink-0 text-grey-300" />
-          </div>
+            <ChevronRightIcon v-if="bill.receiptUrl" class="size-5 shrink-0 text-grey-300" />
+          </component>
           <p v-if="paymentHistory && paymentHistory.length === 0" class="py-3 text-caption text-grey-300">
             결제 내역이 없어요.
           </p>

@@ -34,7 +34,14 @@ const MOCK_PLANS = [
 ]
 
 const MOCK_PAYMENT_HISTORY = [
-  { id: 'payment-3', label: 'Pro 정기결제', date: '2026-07-16', amount: 4900, status: 'SUCCESS' },
+  {
+    id: 'payment-3',
+    label: 'Pro 정기결제',
+    date: '2026-07-16',
+    amount: 4900,
+    status: 'SUCCESS',
+    receiptUrl: 'https://receipt.portone.io/mock/payment-3',
+  },
   { id: 'payment-2', label: 'Pro 정기결제', date: '2026-06-16', amount: 4900, status: 'SUCCESS' },
   { id: 'payment-1', label: 'Pro 정기결제', date: '2026-05-16', amount: 4900, status: 'SUCCESS' },
 ]
@@ -96,6 +103,7 @@ function normalizePaymentHistory(data) {
     amount: item.amount,
     status: item.paymentStatus,
     failureReason: item.failureReason,
+    receiptUrl: item.receiptUrl,
   }))
 }
 
