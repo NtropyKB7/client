@@ -16,7 +16,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   const persisted = loadPersisted()
 
   const accounts = ref(persisted?.accounts ?? [])
-  const jobs = ref(persisted?.jobs ?? [])
   const goal = ref(persisted?.goal ?? { amount: 2500000, fatigue: 3 })
   const isComplete = ref(persisted?.isComplete ?? false)
 
@@ -28,7 +27,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
         STORAGE_KEY,
         JSON.stringify({
           accounts: accounts.value,
-          jobs: jobs.value,
           goal: goal.value,
           isComplete: isComplete.value,
         }),
@@ -40,11 +38,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   function setAccounts(newAccounts) {
     accounts.value = newAccounts
-    persist()
-  }
-
-  function setJobs(newJobs) {
-    jobs.value = newJobs
     persist()
   }
 
@@ -60,7 +53,6 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   function reset() {
     accounts.value = []
-    jobs.value = []
     goal.value = { amount: 2500000, fatigue: 3 }
     isComplete.value = false
     localStorage.removeItem(STORAGE_KEY)
@@ -68,12 +60,10 @@ export const useOnboardingStore = defineStore('onboarding', () => {
 
   return {
     accounts,
-    jobs,
     goal,
     isComplete,
     hasAccounts,
     setAccounts,
-    setJobs,
     setGoal,
     complete,
     reset,
