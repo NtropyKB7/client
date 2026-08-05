@@ -1,7 +1,5 @@
 <!-- src/features/calendar/components/CalendarCell.vue -->
 <script setup>
-import { getJobCategory } from '@/shared/utils/jobCategory'
-
 defineProps({
   cell: { type: Object, default: null },
 })
@@ -35,12 +33,7 @@ const STATUS_CAPSULE = {
       {{ cell.dayNumber }}
     </span>
     <span class="flex h-0.5 gap-0.5">
-      <span
-        v-for="category in cell.categories"
-        :key="category"
-        class="h-0.5 w-3 rounded-full"
-        :class="getJobCategory(category).colorClass"
-      />
+      <span v-if="cell.hasWork" class="h-0.5 w-3 rounded-full bg-gray-400" />
     </span>
   </button>
 </template>

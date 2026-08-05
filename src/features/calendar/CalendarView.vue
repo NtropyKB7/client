@@ -2,31 +2,22 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
-import { useOnboardingStore } from '@/features/onboarding/store'
-import { useModalStore } from '@/shared/store/modal'
+import { useToastStore } from '@/shared/store/toast'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
-import { useCalendarStore } from './store'
-import { fetchCalendarMonth, fetchWeatherForecast, FATIGUE_THRESHOLD, TODAY_DATE_KEY } from './api'
 import {
-  getMonthGrid,
-  formatDateKey,
-  computeDayStatus,
-  getUniqueCategories,
-  computeEntryHours,
-  computeEntryIncome,
-  computeDayFatigue,
-} from './utils'
+  fetchCalendarMonth,
+  fetchCalendarDay,
+  fetchWeatherForecast,
+  MONTH_SUMMARY_TARGET,
+} from './api'
+import { getMonthGrid, formatDateKey } from './utils'
 import CalendarGrid from './components/CalendarGrid.vue'
 import WeatherAccordion from './components/WeatherAccordion.vue'
 import DayDetailPanel from './components/DayDetailPanel.vue'
 import MonthSummaryBar from './components/MonthSummaryBar.vue'
-import WorkPlanModal from './components/WorkPlanModal.vue'
-import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
 
-const onboardingStore = useOnboardingStore()
-const calendarStore = useCalendarStore()
-const modalStore = useModalStore()
+const toastStore = useToastStore()
 const defenseModeStore = useDefenseModeStore()
 
 function isDateInDefenseRange(dateKey) {
@@ -36,41 +27,62 @@ function isDateInDefenseRange(dateKey) {
   return dateKey >= defenseModeStore.startDate && dateKey <= defenseModeStore.endDate
 }
 
-const currentYear = ref(2026)
-const currentMonth = ref(7)
-const selectedDateKey = ref('2026-07-16')
+const today = new Date()
+const currentYear = ref(today.getFullYear())
+const currentMonth = ref(today.getMonth() + 1)
+const selectedDateKey = ref(formatDateKey(today))
 
-const { data: monthConfig } = useQuery({
+const { data: monthData } = useQuery({
   queryKey: computed(() => ['calendar', 'month', currentYear.value, currentMonth.value]),
   queryFn: () => fetchCalendarMonth({ year: currentYear.value, month: currentMonth.value }),
 })
 
-// TODO(연동 테스트 전용): GET /api/weather 연동 확인용. 오늘 기준 5일치만 채워지며,
-// 캘린더 전체가 백엔드로 마이그레이션되면 fetchCalendarMonth의 내장 weather로 대체되어 제거된다.
+const { data: dayData } = useQuery({
+  queryKey: computed(() => ['calendar', 'day', selectedDateKey.value]),
+  queryFn: () => fetchCalendarDay({ dateKey: selectedDateKey.value }),
+})
+
+// 오늘부터 5일치 실황 예보(weather-controller). monthly에 내장된 weather는 예보 범위를 벗어나면
+// null로 오는 경우가 많아, 가까운 날짜는 이 실황 예보값으로 덮어써 보여준다.
 const { data: liveWeatherByDate } = useQuery({
   queryKey: ['calendar', 'weather', 'live'],
   queryFn: () => fetchWeatherForecast(),
 })
 
-const weatherByDate = computed(() => ({
-  ...monthConfig.value?.weatherByDate,
-  ...liveWeatherByDate.value,
-}))
+const daysByDate = computed(() => {
+  const map = new Map()
+  for (const day of monthData.value?.days ?? []) map.set(day.dateKey, day)
+  return map
+})
+
+// COMPLETED 외의 값(PENDING 등, 백엔드 enum 전체가 문서화되어 있지 않음)은 전부 정산 예정으로 취급.
+function mapSettlementStatus(settlementStatus) {
+  return settlementStatus === 'COMPLETED' ? 'settled' : 'pending'
+}
 
 const grid = computed(() => getMonthGrid(currentYear.value, currentMonth.value))
+
+const weatherByDate = computed(() => {
+  const map = {}
+  for (const day of monthData.value?.days ?? []) {
+    if (day.weather) map[day.dateKey] = day.weather
+  }
+  return { ...map, ...liveWeatherByDate.value }
+})
 
 const cells = computed(() =>
   grid.value.map((date) => {
     if (!date) return null
     const dateKey = formatDateKey(date)
-    const dayEntries = calendarStore.entriesForDate(dateKey)
+    const day = daysByDate.value.get(dateKey)
     const isDefenseMode = isDateInDefenseRange(dateKey)
     return {
       date,
       dateKey,
       dayNumber: date.getDate(),
-      status: computeDayStatus(dayEntries, isDefenseMode),
-      categories: getUniqueCategories(dayEntries),
+      status: isDefenseMode ? 'defense' : day ? mapSettlementStatus(day.settlementStatus) : 'none',
+      // TODO: job/category-controller 연동 후 카테고리별 색상 dot으로 복원(현재 백엔드 jobs[]엔 category 없음)
+      hasWork: (day?.jobs?.length ?? 0) > 0,
       isSelected: dateKey === selectedDateKey.value,
       weather: weatherByDate.value[dateKey] ?? null,
     }
@@ -99,94 +111,34 @@ function selectDate(date) {
   selectedDateKey.value = formatDateKey(date)
 }
 
-const selectedEntries = computed(() => calendarStore.entriesForDate(selectedDateKey.value))
-const selectedWeather = computed(() => weatherByDate.value[selectedDateKey.value] ?? null)
-const selectedFatigue = computed(() => computeDayFatigue(selectedEntries.value))
-
-const monthPrefix = computed(
-  () => `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}`,
+const selectedEntries = computed(
+  () =>
+    dayData.value?.works.map((work) => ({
+      id: work.workId,
+      jobName: work.jobName,
+      startTime: work.startTime ?? '-',
+      endTime: work.endTime ?? '-',
+      status: work.status,
+    })) ?? [],
 )
-const monthEntries = computed(() =>
-  calendarStore.entries.filter((entry) => entry.date.startsWith(monthPrefix.value)),
+const selectedWeather = computed(
+  () => dayData.value?.weather ?? weatherByDate.value[selectedDateKey.value] ?? null,
 )
-const plannedHours = computed(() =>
-  Math.round(monthEntries.value.reduce((sum, entry) => sum + computeEntryHours(entry), 0)),
-)
-const plannedIncome = computed(() =>
-  monthEntries.value.reduce((sum, entry) => {
-    const job = onboardingStore.jobs.find((j) => j.id === entry.jobId)
-    return sum + computeEntryIncome(entry, job)
-  }, 0),
+const selectedFatigueScore = computed(() => dayData.value?.fatigue?.score ?? null)
+const selectedFatigueOverThreshold = computed(
+  () => dayData.value?.fatigue?.isOverThreshold ?? false,
 )
 
-function isEntryConfirmable(entry) {
-  return entry.status === 'planned' && selectedDateKey.value <= TODAY_DATE_KEY
-}
-
-const unconfirmedEntry = computed(() => selectedEntries.value.find(isEntryConfirmable))
-const primaryActionLabel = computed(() =>
-  unconfirmedEntry.value ? '근무일지 작성' : '근무 계획 추가',
+const plannedHours = computed(() => monthData.value?.summary?.plannedHours ?? 0)
+const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
+const targetIncome = computed(
+  () => monthData.value?.summary?.targetAmount ?? MONTH_SUMMARY_TARGET.income,
 )
 
-async function openCreateModal() {
-  const payload = await modalStore.open(
-    WorkPlanModal,
-    { mode: 'create', dateKey: selectedDateKey.value, jobs: onboardingStore.jobs, entry: null },
-    { position: 'bottom' },
-  )
-  if (payload) {
-    calendarStore.addEntry({ id: `entry-${Date.now()}`, date: selectedDateKey.value, ...payload })
-  }
-}
-
-async function openEditModal(entry) {
-  const payload = await modalStore.open(
-    WorkPlanModal,
-    { mode: 'edit', dateKey: entry.date, jobs: onboardingStore.jobs, entry },
-    { position: 'bottom' },
-  )
-  if (payload?.delete) {
-    openDeleteConfirm(entry)
-    return
-  }
-  if (payload) {
-    calendarStore.updateEntry(entry.id, payload)
-  }
-}
-
-async function openConfirmModal(entry) {
-  const payload = await modalStore.open(
-    WorkPlanModal,
-    { mode: 'confirm', dateKey: entry.date, jobs: onboardingStore.jobs, entry },
-    { position: 'bottom' },
-  )
-  if (payload) {
-    calendarStore.updateEntry(entry.id, payload)
-  }
-}
-
-async function openDeleteConfirm(entry) {
-  const confirmed = await modalStore.open(DeleteConfirmModal, { entry }, { position: 'center' })
-  if (confirmed) {
-    calendarStore.deleteEntry(entry.id)
-  }
-}
-
-function handlePrimaryAction() {
-  if (unconfirmedEntry.value) {
-    openConfirmModal(unconfirmedEntry.value)
-  } else {
-    openCreateModal()
-  }
-}
-
-function openEntryDetail(entry) {
-  if (entry.status === 'settled') return
-  if (isEntryConfirmable(entry)) {
-    openConfirmModal(entry)
-  } else {
-    openEditModal(entry)
-  }
+// TODO(work-log-controller 연동 전용): 근무 등록/수정/확정/삭제는 서버 jobId를 아직 확보하지 못해
+// (onboarding 잡이 로컬 mock) 이번 패스에서는 비활성화하고 안내 토스트만 띄운다.
+function notifyWorkManagementComingSoon() {
+  toastStore.show('근무 관리 기능은 준비 중이에요')
 }
 </script>
 
@@ -210,18 +162,18 @@ function openEntryDetail(entry) {
         :date-key="selectedDateKey"
         :entries="selectedEntries"
         :weather="selectedWeather"
-        :fatigue-score="selectedFatigue"
-        :fatigue-threshold="FATIGUE_THRESHOLD"
-        :primary-action-label="primaryActionLabel"
-        @primary-action="handlePrimaryAction"
-        @open-entry="openEntryDetail"
+        :fatigue-score="selectedFatigueScore"
+        :is-fatigue-over-threshold="selectedFatigueOverThreshold"
+        primary-action-label="근무 계획 추가"
+        @primary-action="notifyWorkManagementComingSoon"
+        @open-entry="notifyWorkManagementComingSoon"
       />
 
       <MonthSummaryBar
         :planned-hours="plannedHours"
-        :target-hours="monthConfig?.summaryTarget?.hours ?? 0"
+        :target-hours="MONTH_SUMMARY_TARGET.hours"
         :planned-income="plannedIncome"
-        :target-income="monthConfig?.summaryTarget?.income ?? 0"
+        :target-income="targetIncome"
       />
     </div>
   </div>

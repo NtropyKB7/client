@@ -1,7 +1,6 @@
 <!-- src/features/calendar/components/CalendarGrid.vue -->
 <script setup>
 import CalendarCell from './CalendarCell.vue'
-import { JOB_CATEGORIES } from '@/shared/utils/jobCategory'
 import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
 
@@ -59,17 +58,6 @@ const SETTLEMENT_LEGEND = [
         :cell="cell"
         @select="emit('select', cell.date)"
       />
-    </div>
-
-    <div class="mt-3 flex flex-wrap gap-4 text-caption text-grey-400">
-      <span
-        v-for="category in JOB_CATEGORIES"
-        :key="category.value"
-        class="flex items-center gap-1.5"
-      >
-        <span class="h-0.5 w-4 rounded-full" :class="category.colorClass" />
-        {{ category.label }}
-      </span>
     </div>
   </div>
 </template>
