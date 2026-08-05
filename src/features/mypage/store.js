@@ -44,13 +44,6 @@ export const useMypageStore = defineStore('mypage', () => {
     persist()
   }
 
-  function initPlan(id) {
-    if (planId.value === null) {
-      planId.value = id
-      persist()
-    }
-  }
-
   function setPlan(id) {
     planId.value = id
     persist()
@@ -67,7 +60,6 @@ export const useMypageStore = defineStore('mypage', () => {
     planId,
     initNotifications,
     removeNotification,
-    initPlan,
     setPlan,
     reset,
   }

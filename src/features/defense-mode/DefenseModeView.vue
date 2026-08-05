@@ -28,7 +28,7 @@ const { data: subscription } = useQuery({
 })
 
 watch(subscription, (value) => {
-  if (value) mypageStore.initPlan(value.planId)
+  if (value) mypageStore.setPlan(value.planId)
 })
 
 const isSubscribed = computed(() => mypageStore.planId === 'pro')

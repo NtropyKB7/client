@@ -43,7 +43,7 @@ const { data: plans } = useQuery({
 })
 
 watch(subscription, (value) => {
-  if (value) mypageStore.initPlan(value.planId)
+  if (value) mypageStore.setPlan(value.planId)
 })
 
 const currentPlanLabel = computed(
