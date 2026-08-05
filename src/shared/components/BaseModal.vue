@@ -86,8 +86,8 @@ onUnmounted(() => {
               modalStore.position === 'full'
                 ? 'h-full w-full overflow-y-auto'
                 : modalStore.position === 'bottom'
-                  ? 'w-full max-w-sm rounded-t-2xl p-6 pb-8'
-                  : 'mx-4 w-full max-w-sm rounded-2xl border border-[#111110]/20 p-6'
+                  ? 'max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-t-2xl p-6 pb-8'
+                  : 'mx-4 max-h-[85vh] w-full max-w-sm overflow-y-auto rounded-2xl border border-[#111110]/20 p-6'
             "
           >
             <div
