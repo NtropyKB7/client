@@ -3,8 +3,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
-import { useOnboardingStore } from './store'
-import { fetchDetectedJobs } from './api'
+import { fetchDetectedJobs, createJob } from './api'
 import { useModalStore } from '@/shared/store/modal'
 import DetectedJobCard from './components/DetectedJobCard.vue'
 import JobFormModal from './components/JobFormModal.vue'
@@ -12,7 +11,6 @@ import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
-const onboardingStore = useOnboardingStore()
 const modalStore = useModalStore()
 
 const { data: detectedJobs, isLoading } = useQuery({
@@ -20,12 +18,11 @@ const { data: detectedJobs, isLoading } = useQuery({
   queryFn: fetchDetectedJobs,
 })
 
-const jobs = ref(
-  onboardingStore.jobs.length > 0
-    ? onboardingStore.jobs.map((j) => ({ ...j, confirmed: true }))
-    : [],
+const jobs = ref([])
+const isSubmitting = ref(false)
+const allConfirmed = computed(
+  () => jobs.value.length > 0 && jobs.value.every((job) => job.confirmed),
 )
-const allConfirmed = computed(() => jobs.value.every((job) => job.confirmed))
 
 watch(detectedJobs, (value) => {
   if (value && jobs.value.length === 0) {
@@ -52,9 +49,25 @@ async function addCustomJob() {
   }
 }
 
-function submit() {
-  onboardingStore.setJobs(jobs.value)
-  router.push({ name: 'onboarding-goal' })
+// 계좌 자동감지 잡(fetchDetectedJobs)은 실 카테고리 체계(GET /api/categories) 이전 mock 데이터라
+// categoryId가 없다 — job-controller에 등록할 때만 근접한 실 카테고리로 임시 매핑한다.
+const LEGACY_CATEGORY_TO_CATEGORY_ID = { driving: 2, delivery: 1, creative: 10, other: 6 }
+
+async function submit() {
+  isSubmitting.value = true
+  try {
+    await Promise.all(
+      jobs.value.map((job) =>
+        createJob({
+          ...job,
+          categoryId: job.categoryId ?? LEGACY_CATEGORY_TO_CATEGORY_ID[job.category] ?? 6,
+        }),
+      ),
+    )
+    router.push({ name: 'onboarding-goal' })
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -104,7 +117,10 @@ function submit() {
         </p>
       </template>
 
-      <Button class="mt-auto" :disabled="jobs.length === 0 || !allConfirmed" @click="submit"
+      <Button
+        class="mt-auto"
+        :disabled="jobs.length === 0 || !allConfirmed || isSubmitting"
+        @click="submit"
         >다음</Button
       >
     </div>

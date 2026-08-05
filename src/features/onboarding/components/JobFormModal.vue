@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
-import { JOB_CATEGORIES, getJobCategory } from '@/shared/utils/jobCategory'
+import { fetchCategories } from '@/features/onboarding/api'
 import { INCOME_METHOD_OPTIONS } from '@/shared/utils/incomeMethod'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
@@ -15,6 +16,8 @@ const props = defineProps({
 
 const modalStore = useModalStore()
 
+const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: fetchCategories })
+
 function initialDraft() {
   if (props.job) {
     return {
@@ -27,7 +30,7 @@ function initialDraft() {
       workDays: [...props.job.workDays],
       startTime: props.job.startTime,
       endTime: props.job.endTime,
-      category: props.job.category,
+      categoryId: props.job.categoryId ?? null,
     }
   }
   return {
@@ -40,7 +43,7 @@ function initialDraft() {
     workDays: [],
     startTime: '',
     endTime: '',
-    category: '',
+    categoryId: null,
   }
 }
 
@@ -51,8 +54,12 @@ const categoryFieldRef = ref(null)
 const isIncomeMethodOpen = ref(false)
 const incomeMethodFieldRef = ref(null)
 
-function selectCategory(value) {
-  draft.value.category = value
+const selectedCategoryName = computed(
+  () => categories.value?.find((category) => category.categoryId === draft.value.categoryId)?.name,
+)
+
+function selectCategory(categoryId) {
+  draft.value.categoryId = categoryId
   isCategoryOpen.value = false
 }
 
@@ -119,8 +126,8 @@ function cancel() {
           class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3 text-left text-body4"
           @click="isCategoryOpen = !isCategoryOpen"
         >
-          <span :class="draft.category ? 'text-grey-500' : 'text-grey-300'">
-            {{ draft.category ? getJobCategory(draft.category).label : '잡 카테고리' }}
+          <span :class="draft.categoryId ? 'text-grey-500' : 'text-grey-300'">
+            {{ selectedCategoryName ?? '잡 카테고리' }}
           </span>
           <ChevronDownIcon
             class="size-4 shrink-0 text-grey-400 transition-transform"
@@ -130,20 +137,25 @@ function cancel() {
 
         <div
           v-if="isCategoryOpen"
-          class="absolute z-10 mt-1.5 w-full rounded-2xl border border-grey-50 bg-grey-white p-1.5 shadow-lg"
+          class="absolute z-10 mt-1.5 max-h-60 w-full overflow-y-auto rounded-2xl border border-grey-50 bg-grey-white p-1.5 shadow-lg"
         >
           <button
-            v-for="option in JOB_CATEGORIES"
-            :key="option.value"
+            v-for="option in categories"
+            :key="option.categoryId"
             type="button"
             class="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-body4"
             :class="
-              draft.category === option.value ? 'bg-primary-50 text-primary-800' : 'text-grey-500'
+              draft.categoryId === option.categoryId
+                ? 'bg-primary-50 text-primary-800'
+                : 'text-grey-500'
             "
-            @click="selectCategory(option.value)"
+            @click="selectCategory(option.categoryId)"
           >
-            {{ option.label }}
-            <CheckIcon v-if="draft.category === option.value" class="size-4 text-primary-600" />
+            {{ option.name }}
+            <CheckIcon
+              v-if="draft.categoryId === option.categoryId"
+              class="size-4 text-primary-600"
+            />
           </button>
         </div>
       </div>
