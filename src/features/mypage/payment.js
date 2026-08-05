@@ -1,12 +1,6 @@
 import PortOne from '@portone/browser-sdk/v2'
 import { fetchPaymentConfig } from './api'
 
-export const PAYMENT_CHANNELS = [
-  { method: 'CARD', label: '신용·체크카드', description: '국내 발급 신용·체크카드' },
-  { method: 'KAKAOPAY', label: '카카오페이' },
-  { method: 'TOSSPAY', label: '토스페이' },
-]
-
 // CARD는 카드 발급창, KAKAOPAY/TOSSPAY는 PortOne의 EASY_PAY 발급수단 + 해당 간편결제 제공사로 매핑한다.
 function buildIssueRequest(config, method) {
   const base = {
