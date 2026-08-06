@@ -46,7 +46,11 @@ const MOCK_PAYMENT_HISTORY = [
   { id: 'payment-1', label: 'Pro 정기결제', date: '2026-05-16', amount: 4900, status: 'SUCCESS' },
 ]
 
-const MOCK_PAYMENT_CONFIG = { storeId: '', channels: { CARD: '', KAKAOPAY: '', TOSSPAY: '' } }
+const MOCK_PAYMENT_CONFIG = {
+  storeId: '',
+  channels: { CARD: '', KAKAOPAY: '', TOSSPAY: '' },
+  customerId: '',
+}
 
 const MOCK_NOTIFICATIONS = [
   {

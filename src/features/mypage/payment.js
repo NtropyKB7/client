@@ -2,11 +2,14 @@ import PortOne from '@portone/browser-sdk/v2'
 import { fetchPaymentConfig } from './api'
 
 // CARD는 카드 발급창, KAKAOPAY/TOSSPAY는 PortOne의 EASY_PAY 발급수단 + 해당 간편결제 제공사로 매핑한다.
+// customerId는 GET /subscriptions/config에서 내려주며, 토스페이먼츠(및 스마트로)의 빌링키
+// 발급 시 PortOne이 요구하는 구매자 식별자다. 다른 PG는 무시하므로 항상 넣어도 안전하다.
 function buildIssueRequest(config, method) {
   const base = {
     storeId: config.storeId,
     channelKey: config.channels?.[method],
     issueName: 'Ntropy Pro 구독 결제 수단',
+    customer: config.customerId ? { customerId: config.customerId } : undefined,
   }
   if (method === 'CARD') {
     return { ...base, billingKeyMethod: 'CARD' }
