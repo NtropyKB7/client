@@ -3,7 +3,10 @@
 import { computed, ref } from 'vue'
 import Button from '@/shared/components/Button.vue'
 import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
-import { CAUSE_OPTIONS } from '../api'
+
+defineProps({
+  causes: { type: Array, required: true },
+})
 
 const emit = defineEmits(['activate'])
 
@@ -46,18 +49,18 @@ function submit() {
       </p>
       <div class="mt-2 grid grid-cols-3 gap-2">
         <button
-          v-for="option in CAUSE_OPTIONS"
-          :key="option.id"
+          v-for="option in causes"
+          :key="option.causeCode"
           type="button"
           class="rounded-xl border py-2.5 text-caption font-bold"
           :class="
-            selectedCause === option.id
+            selectedCause === option.causeCode
               ? 'border-primary-500 bg-primary-500 text-white'
               : 'border-grey-50 bg-grey-30 text-grey-500'
           "
-          @click="selectCause(option.id)"
+          @click="selectCause(option.causeCode)"
         >
-          {{ option.label }}
+          {{ option.causeName }}
         </button>
       </div>
 

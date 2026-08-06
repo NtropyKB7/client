@@ -1,14 +1,15 @@
 <!-- src/features/defense-mode/DefenseModeView.vue -->
 <script setup>
 import { computed, watch } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
+import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
 import { useMypageStore } from '@/features/mypage/store'
 import { fetchSubscription } from '@/features/mypage/api'
 import AppHeader from '@/shared/components/AppHeader.vue'
 import Button from '@/shared/components/Button.vue'
 import { useDefenseModeStore } from './store'
-import { fetchDefenseModeData } from './api'
+import { fetchDefenseModeData, fetchDefenseCauses, enterDefenseMode, releaseDefenseMode } from './api'
+import { formatDateKey } from './utils'
 import DeclarationForm from './components/DeclarationForm.vue'
 import SurvivalCalculatorCard from './components/SurvivalCalculatorCard.vue'
 import ExpectedLossCard from './components/ExpectedLossCard.vue'
@@ -21,6 +22,7 @@ import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
 const defenseStore = useDefenseModeStore()
 const modalStore = useModalStore()
 const mypageStore = useMypageStore()
+const queryClient = useQueryClient()
 
 const { data: subscription } = useQuery({
   queryKey: ['mypage', 'subscription'],
@@ -34,22 +36,42 @@ watch(subscription, (value) => {
 const isSubscribed = computed(() => mypageStore.planId === 'pro')
 
 const { data: defenseData } = useQuery({
-  queryKey: ['defense-mode', 'data'],
+  queryKey: ['defense-mode', 'active'],
   queryFn: fetchDefenseModeData,
+  enabled: isSubscribed,
 })
 
-const insuranceItems = computed(
-  () => defenseData.value?.insuranceChecklistByCause?.[defenseStore.cause] ?? [],
+watch(
+  defenseData,
+  (value) => {
+    defenseStore.syncFromServer(value ?? null)
+  },
+  { immediate: true },
 )
 
-function activate(payload) {
-  defenseStore.activate(payload)
+const { data: causes } = useQuery({
+  queryKey: ['defense-mode', 'causes'],
+  queryFn: fetchDefenseCauses,
+  enabled: isSubscribed,
+})
+
+async function activate(payload) {
+  await enterDefenseMode({
+    causeCode: payload.cause,
+    unavailableStartDate: payload.startDate,
+    expectedReturnDate: payload.endDate,
+  })
+  queryClient.invalidateQueries({ queryKey: ['defense-mode'] })
 }
 
 async function openDeactivateConfirm() {
   const confirmed = await modalStore.open(DeactivateConfirmModal, {}, { position: 'center' })
   if (confirmed) {
-    defenseStore.deactivate()
+    await releaseDefenseMode({
+      defenseId: defenseStore.defenseId,
+      returnDate: formatDateKey(new Date()),
+    })
+    queryClient.invalidateQueries({ queryKey: ['defense-mode'] })
   }
 }
 </script>
@@ -71,14 +93,18 @@ async function openDeactivateConfirm() {
           <p class="text-body3 text-primary-800">방어모드 활성</p>
         </div>
 
-        <SurvivalCalculatorCard v-if="defenseData" :finance="defenseData.finance" />
+        <SurvivalCalculatorCard
+          v-if="defenseData"
+          :finance="defenseData.finance"
+          :survival-days="defenseData.survivalDays"
+        />
 
-        <ExpectedLossCard v-if="defenseData" :amount="defenseData.finance.expectedLossIncome" />
+        <ExpectedLossCard v-if="defenseData" :amount="defenseData.expectedLossAmount" />
 
         <FixedExpenseChecklist v-if="defenseData" :items="defenseData.fixedExpenses" />
 
         <InsuranceClaimChecklist
-          :items="insuranceItems"
+          :items="defenseData?.checklist ?? []"
           :checked-ids="defenseStore.checkedInsuranceIds"
           @toggle="defenseStore.toggleInsuranceItem"
         />
@@ -87,17 +113,19 @@ async function openDeactivateConfirm() {
           <div class="flex items-center justify-between">
             <p class="text-caption font-bold text-grey-500">성장모드</p>
             <span class="rounded-full bg-grey-30 px-3 py-1.5 text-[10px] font-bold text-grey-300">
-              일시정지됨
+              {{ defenseData?.growthMode?.isPaused ? '일시정지됨' : '정상 진행중' }}
             </span>
           </div>
-          <p class="mt-1 text-[11px] text-grey-300">근무 추천과 자동 지출을 잠시 멈춘 상태</p>
+          <p class="mt-1 text-[11px] text-grey-300">
+            {{ defenseData?.growthMode?.message || '근무 추천과 자동 지출을 잠시 멈춘 상태' }}
+          </p>
           <div class="mt-4">
             <Button @click="openDeactivateConfirm">방어모드 해제</Button>
           </div>
         </div>
       </template>
 
-      <DeclarationForm v-else @activate="activate" />
+      <DeclarationForm v-else :causes="causes ?? []" @activate="activate" />
     </div>
   </div>
 </template>

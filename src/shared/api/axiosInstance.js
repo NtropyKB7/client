@@ -4,7 +4,7 @@ import { useToastStore } from '@/shared/store/toast'
 
 // TEMP: 실 로그인이 연동되어 authStore가 진짜 userId를 갖기 전까지, 인증이 없는 요청은
 // 이 고정 테스트 유저로 동작한다. 'debug'는 auth/store.js의 DEV 임시 스텁 토큰이라 실 인증으로 치지 않는다.
-const FALLBACK_USER_ID = 1
+export const FALLBACK_USER_ID = 1
 
 const axiosInstance = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -69,8 +69,12 @@ axiosInstance.interceptors.response.use(
       authStore.logout()
     }
 
-    const toastStore = useToastStore()
-    toastStore.show(error.response?.data?.message ?? '요청 처리 중 오류가 발생했어요.')
+    // 호출부에서 config.suppressErrorToast = true를 넘기면 전역 에러 토스트를 생략한다.
+    // (예: 활성 데이터가 없을 때의 404처럼 정상 흐름에 속하는 에러)
+    if (!originalRequest?.suppressErrorToast) {
+      const toastStore = useToastStore()
+      toastStore.show(error.response?.data?.message ?? '요청 처리 중 오류가 발생했어요.')
+    }
 
     return Promise.reject(error)
   },

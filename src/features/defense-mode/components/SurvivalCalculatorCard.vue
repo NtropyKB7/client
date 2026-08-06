@@ -1,20 +1,16 @@
 <!-- src/features/defense-mode/components/SurvivalCalculatorCard.vue -->
 <script setup>
 import { computed } from 'vue'
-import { computeSurvivalDays } from '../utils'
 
 const SURVIVAL_METER_MAX_DAYS = 30
 
 const props = defineProps({
   finance: { type: Object, required: true },
+  survivalDays: { type: Number, required: true },
 })
 
-const survivalDays = computed(() =>
-  computeSurvivalDays(props.finance.reserve, props.finance.safeAssets, props.finance.dailySpend),
-)
-
 const meterFillPercent = computed(() =>
-  Math.min(100, Math.round((survivalDays.value / SURVIVAL_METER_MAX_DAYS) * 100)),
+  Math.min(100, Math.round((props.survivalDays / SURVIVAL_METER_MAX_DAYS) * 100)),
 )
 
 function manWon(amount) {
