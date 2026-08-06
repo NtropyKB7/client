@@ -1,9 +1,10 @@
 <!-- src/features/calendar/CalendarView.vue -->
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
+import { fetchDefenseModeData } from '@/features/defense-mode/api'
 import { fetchJobs } from '@/features/onboarding/api'
 import {
   fetchCalendarMonth,
@@ -28,6 +29,19 @@ import AppHeader from '@/shared/components/AppHeader.vue'
 const modalStore = useModalStore()
 const queryClient = useQueryClient()
 const defenseModeStore = useDefenseModeStore()
+
+const { data: defenseData } = useQuery({
+  queryKey: ['defense-mode', 'active'],
+  queryFn: fetchDefenseModeData,
+})
+
+watch(
+  defenseData,
+  (value) => {
+    defenseModeStore.syncFromServer(value ?? null)
+  },
+  { immediate: true },
+)
 
 function isDateInDefenseRange(dateKey) {
   if (!defenseModeStore.isActive || !defenseModeStore.startDate || !defenseModeStore.endDate) {

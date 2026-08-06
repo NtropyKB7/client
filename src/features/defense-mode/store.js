@@ -14,39 +14,40 @@ function loadPersisted() {
 
 export const useDefenseModeStore = defineStore('defenseMode', () => {
   const persisted = loadPersisted()
-  const isActive = ref(persisted?.isActive ?? false)
-  const cause = ref(persisted?.cause ?? null)
-  const startDate = ref(persisted?.startDate ?? null)
-  const endDate = ref(persisted?.endDate ?? null)
+  const defenseId = ref(null)
+  const isActive = ref(false)
+  const cause = ref(null)
+  const startDate = ref(null)
+  const endDate = ref(null)
+  // 체크리스트 완료 여부는 백엔드가 추적하지 않는 순수 클라이언트 상태라 계속 로컬에 보관한다.
   const checkedInsuranceIds = ref(persisted?.checkedInsuranceIds ?? [])
 
   function persist() {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({
-          isActive: isActive.value,
-          cause: cause.value,
-          startDate: startDate.value,
-          endDate: endDate.value,
-          checkedInsuranceIds: checkedInsuranceIds.value,
-        }),
+        JSON.stringify({ checkedInsuranceIds: checkedInsuranceIds.value }),
       )
     } catch {
       // localStorage 쓰기 실패(용량 초과, 프라이빗 브라우징 등) 시 무시 — 인메모리 상태는 유지
     }
   }
 
-  function activate({ cause: newCause, startDate: newStartDate, endDate: newEndDate }) {
+  // GET /defense/active 응답(정규화된 형태)을 서버가 단일 진실 공급원인 상태로 반영한다.
+  function syncFromServer(data) {
+    if (!data) {
+      clear()
+      return
+    }
+    defenseId.value = data.defenseId
     isActive.value = true
-    cause.value = newCause
-    startDate.value = newStartDate
-    endDate.value = newEndDate
-    checkedInsuranceIds.value = []
-    persist()
+    cause.value = data.causeCode
+    startDate.value = data.unavailableStartDate
+    endDate.value = data.expectedReturnDate
   }
 
-  function deactivate() {
+  function clear() {
+    defenseId.value = null
     isActive.value = false
     cause.value = null
     startDate.value = null
@@ -55,10 +56,10 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
     persist()
   }
 
-  function toggleInsuranceItem(id) {
-    const index = checkedInsuranceIds.value.indexOf(id)
+  function toggleInsuranceItem(code) {
+    const index = checkedInsuranceIds.value.indexOf(code)
     if (index === -1) {
-      checkedInsuranceIds.value.push(id)
+      checkedInsuranceIds.value.push(code)
     } else {
       checkedInsuranceIds.value.splice(index, 1)
     }
@@ -66,13 +67,14 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
   }
 
   return {
+    defenseId,
     isActive,
     cause,
     startDate,
     endDate,
     checkedInsuranceIds,
-    activate,
-    deactivate,
+    syncFromServer,
+    clear,
     toggleInsuranceItem,
   }
 })
