@@ -25,3 +25,12 @@ export async function issueBillingKey(method) {
   }
   return response.billingKey
 }
+
+// PortOne SDK는 결제/빌링키 발급 UI를 이 id의 래퍼로 body에 직접 삽입한다(#imp-iframe-wrapper).
+// 카카오페이 QR 등 일부 결제수단은 이 오버레이 자체의 닫기 버튼이 응답하지 않는 경우가 있고,
+// 그러면 우리 모달의 닫기 버튼도 오버레이(z-index 99999)에 가려 눌리지 않아 사용자가 갇힌다.
+// issueBillingKey의 Promise가 끝내 응답하지 않을 수 있으므로, 호출부에서 이 함수로 오버레이를
+// 강제로 제거하고 자체적으로 로딩 상태를 풀어 탈출구를 제공한다.
+export function forceCloseBillingKeyUI() {
+  document.getElementById('imp-iframe-wrapper')?.remove()
+}

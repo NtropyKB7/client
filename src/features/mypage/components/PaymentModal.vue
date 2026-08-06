@@ -2,7 +2,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useModalStore } from '@/shared/store/modal'
-import { issueBillingKey } from '../payment'
+import { issueBillingKey, forceCloseBillingKeyUI } from '../payment'
 import { initSubscription } from '../api'
 import Button from '@/shared/components/Button.vue'
 import CardIcon from '@/shared/components/icons/CardIcon.vue'
@@ -36,6 +36,12 @@ async function submit() {
   } finally {
     isSubmitting.value = false
   }
+}
+
+function cancelIssuing() {
+  forceCloseBillingKeyUI()
+  isSubmitting.value = false
+  errorMessage.value = ''
 }
 </script>
 
@@ -157,6 +163,15 @@ async function submit() {
     <Button :disabled="!agreed || isSubmitting" @click="submit">
       {{ isSubmitting ? '결제 처리중...' : `${amountLabel} 결제` }}
     </Button>
+
+    <button
+      v-if="isSubmitting"
+      type="button"
+      class="text-center text-caption text-grey-300 underline"
+      @click="cancelIssuing"
+    >
+      결제창이 응답하지 않나요? 취소하기
+    </button>
 
     <p class="text-center text-caption text-grey-300">
       안전한 결제를 위해 결제정보는 암호화되어 처리됩니다.
