@@ -18,10 +18,11 @@ defineEmits(['open-status'])
         {{ planLabel }} 이용중
       </span>
     </div>
-    <p class="mt-2 text-caption text-grey-300">
+    <p v-if="subscription.nextBillingDate" class="mt-2 text-caption text-grey-300">
       다음 결제일 {{ subscription.nextBillingDate }} ·
       {{ subscription.autoRenew ? '자동 연장' : '자동 연장 꺼짐' }}
     </p>
+    <p v-else class="mt-2 text-caption text-grey-300">Pro로 업그레이드하고 더 많은 기능을 이용해보세요</p>
 
     <button
       type="button"

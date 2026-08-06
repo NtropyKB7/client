@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { useAuthStore } from '@/features/auth/store'
 import { useOnboardingStore } from '@/features/onboarding/store'
 import { useMypageStore } from './store'
-import { fetchProfile, fetchSubscription, PLAN_OPTIONS } from './api'
+import { fetchProfile, fetchSubscription, fetchPlans } from './api'
 import AppHeader from '@/shared/components/AppHeader.vue'
 import ProfileHeader from './components/ProfileHeader.vue'
 import JobListSection from './components/JobListSection.vue'
@@ -37,12 +37,17 @@ const { data: subscription } = useQuery({
   queryFn: fetchSubscription,
 })
 
+const { data: plans } = useQuery({
+  queryKey: ['mypage', 'plans'],
+  queryFn: fetchPlans,
+})
+
 watch(subscription, (value) => {
-  if (value) mypageStore.initPlan(value.planId)
+  if (value) mypageStore.setPlan(value.planId)
 })
 
 const currentPlanLabel = computed(
-  () => PLAN_OPTIONS.find((plan) => plan.id === mypageStore.planId)?.name ?? 'Pro',
+  () => plans.value?.find((plan) => plan.id === mypageStore.planId)?.name ?? 'Pro',
 )
 
 function goBackToMain() {
@@ -99,15 +104,17 @@ function selectMenuItem(id) {
   />
   <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
   <SubscriptionStatusSection
-    v-else-if="subView === 'subscription' && subscription"
+    v-else-if="subView === 'subscription' && subscription && plans"
     :subscription="subscription"
     :profile="profile"
+    :plans="plans"
     @back="goBackToMain"
     @open-payment-methods="subView = 'paymentMethods'"
   />
   <PaymentMethodsSection
-    v-else-if="subView === 'paymentMethods' && subscription"
+    v-else-if="subView === 'paymentMethods' && subscription && plans"
     :subscription="subscription"
+    :plans="plans"
     @back="subView = 'subscription'"
   />
   <AppInfoSection v-else-if="subView === 'appInfo'" @back="goBackToMain" />
