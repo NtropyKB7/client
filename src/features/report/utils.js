@@ -17,3 +17,13 @@ export function computeChangePercent(current, previous) {
   if (!previous) return null
   return Math.round(((current - previous) / previous) * 100)
 }
+
+/**
+ * "2026-07" 형태의 yearMonth를 "7월"로 축약한다.
+ * 백엔드 응답에 monthLabel 필드가 없어 클라이언트에서 파생한다.
+ * @param {string} yearMonth
+ */
+export function deriveMonthLabel(yearMonth) {
+  const month = Number(yearMonth?.split('-')[1])
+  return Number.isFinite(month) ? `${month}월` : ''
+}

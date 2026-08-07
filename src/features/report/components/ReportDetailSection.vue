@@ -128,17 +128,19 @@ function openDeliverySettings() {
       </div>
     </div>
 
-    <JobPerformanceCard v-if="isSubscribed" :jobs="detail.jobBreakdown" />
+    <JobPerformanceCard v-if="isSubscribed && detail.jobBreakdown?.length" :jobs="detail.jobBreakdown" />
 
     <AiInsightCard
-      v-if="isSubscribed"
+      v-if="isSubscribed && detail.insight"
       :title="detail.insight.title"
       :description="detail.insight.description"
     />
 
     <RecommendedProductCard
+      v-if="detail.recommendedProduct"
       :name="detail.recommendedProduct.name"
       :description="detail.recommendedProduct.description"
+      :provider="detail.recommendedProduct.provider"
       :is-subscribed="isSubscribed"
       @subscribe="emit('subscribe')"
     />

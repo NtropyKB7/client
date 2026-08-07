@@ -2,6 +2,7 @@
 defineProps({
   name: { type: String, required: true },
   description: { type: String, required: true },
+  provider: { type: String, default: '' },
   isSubscribed: { type: Boolean, required: true },
 })
 
@@ -19,7 +20,8 @@ defineEmits(['subscribe'])
         구독자 전용
       </span>
     </div>
-    <p class="mt-3 text-body1 text-grey-500">{{ name }}</p>
+    <p v-if="provider" class="mt-3 text-[11px] text-grey-300">{{ provider }}</p>
+    <p class="text-body1 text-grey-500" :class="provider ? 'mt-0.5' : 'mt-3'">{{ name }}</p>
     <p class="mt-1 text-caption text-grey-300">{{ description }}</p>
 
     <button
