@@ -45,7 +45,7 @@ const sparkline = computed(() =>
         <ChevronRightIcon class="size-4 text-primary-800" />
       </div>
       <p class="mt-3 text-head3 font-bold text-grey-500">{{ latest.monthLabel }} 리포트</p>
-      <p v-if="latest.totalIncome != null && latest.totalSpend != null" class="mt-1 text-caption text-grey-300">
+      <p class="mt-1 text-caption text-grey-300">
         소득 {{ formatMan(latest.totalIncome) }} · 소비 {{ formatMan(latest.totalSpend) }}
       </p>
 
@@ -85,7 +85,7 @@ const sparkline = computed(() =>
         </span>
         <div class="min-w-0 flex-1">
           <p class="text-body3 text-grey-500">{{ report.monthLabel }} 리포트</p>
-          <p v-if="report.totalIncome != null && report.totalSpend != null" class="mt-1 text-caption text-grey-300">
+          <p class="mt-1 text-caption text-grey-300">
             소득 {{ formatMan(report.totalIncome) }} · 소비 {{ formatMan(report.totalSpend) }}
           </p>
         </div>

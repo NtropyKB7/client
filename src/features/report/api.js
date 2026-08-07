@@ -277,10 +277,9 @@ function normalizeListItem(item) {
     month: item.yearMonth,
     monthLabel: deriveMonthLabel(item.yearMonth),
     reportTitle: item.reportTitle,
-    // 실 목록 API(GET /api/ai-reports)는 아직 요약 수치를 내려주지 않는다.
-    // 백엔드에 필드 추가를 요청해둔 상태이며, 그전까지는 화면에서 조건부로 숨긴다.
     totalIncome: item.totalIncome ?? null,
     totalSpend: item.totalExpense ?? null,
+    // 목록 API는 availableFunds를 내려주지 않는다(상세 API에만 존재).
     availableFunds: item.availableFunds ?? null,
   }
 }
