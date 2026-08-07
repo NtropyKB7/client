@@ -1,16 +1,27 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './store'
+import { useToastStore } from '@/shared/store/toast'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+const toastStore = useToastStore()
 
 onMounted(async () => {
-  const success = await authStore.tryRefresh()
-  if (success) {
-    router.replace({ name: 'home' })
-  } else {
+  const { code, state } = route.query
+
+  if (!code || !state) {
+    router.replace({ name: 'login' })
+    return
+  }
+
+  try {
+    const user = await authStore.loginWithOAuth(state, code)
+    router.replace(user.onboardingCompleted ? { name: 'home' } : { name: 'onboarding-account' })
+  } catch {
+    toastStore.show('로그인 처리 중 오류가 발생했어요.')
     router.replace({ name: 'login' })
   }
 })

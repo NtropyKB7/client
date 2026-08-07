@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/features/auth/store'
-import { useOnboardingStore } from '@/features/onboarding/store'
 import AppLayout from '@/shared/components/AppLayout.vue'
 
 const routes = [
@@ -84,8 +83,11 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
 
-  const onboardingStore = useOnboardingStore()
-  if (to.meta.requiresOnboarding && authStore.isAuthenticated && !onboardingStore.isComplete) {
+  if (
+    to.meta.requiresOnboarding &&
+    authStore.isAuthenticated &&
+    !authStore.user?.onboardingCompleted
+  ) {
     return { name: 'onboarding-account' }
   }
 

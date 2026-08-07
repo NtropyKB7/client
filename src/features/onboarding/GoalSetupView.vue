@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
+import { useAuthStore } from '@/features/auth/store'
 import { calculateAchievableRange } from './api'
 import RangeSlider from './components/RangeSlider.vue'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
@@ -9,6 +10,7 @@ import Button from '@/shared/components/Button.vue'
 
 const router = useRouter()
 const onboardingStore = useOnboardingStore()
+const authStore = useAuthStore()
 
 const amount = ref(onboardingStore.goal.amount)
 const fatigue = ref(onboardingStore.goal.fatigue)
@@ -19,9 +21,11 @@ function formatWon(value) {
   return `${Math.round(value / 10000)}만원`
 }
 
-function submit() {
+async function submit() {
   onboardingStore.setGoal({ amount: amount.value, fatigue: fatigue.value })
-  onboardingStore.complete()
+  // 온보딩 완료 여부는 서버가 판단한다(회원/인증 API 스코프엔 별도 완료 API가 없음) — /auth/me를
+  // 재조회해 라우터 가드가 최신 onboardingCompleted를 보게 만든다.
+  await authStore.fetchMe()
   router.push({ name: 'home' })
 }
 </script>

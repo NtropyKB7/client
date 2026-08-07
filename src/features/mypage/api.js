@@ -75,6 +75,14 @@ function toDateLabel(isoDateTime) {
   return isoDateTime ? isoDateTime.slice(0, 10) : null
 }
 
+function normalizeProfile(data) {
+  return {
+    name: data.name,
+    email: data.email,
+    avatarLabel: (data.name ?? '').slice(-2),
+  }
+}
+
 function normalizeSubscription(data) {
   return {
     planId: (data.planCode ?? 'BASIC').toLowerCase(),
@@ -112,7 +120,18 @@ function normalizePaymentHistory(data) {
 }
 
 export async function fetchProfile() {
-  return requestWithMock(MOCK_PROFILE, (client) => client.get('/mypage/profile'))
+  return requestWithMock(MOCK_PROFILE, (client) =>
+    client.get('/users/me').then((response) => ({ data: normalizeProfile(response.data) })),
+  )
+}
+
+// 정보수정/탈퇴 UI 진입점은 아직 없음 — 함수만 준비해둔다.
+export async function updateProfile(payload) {
+  return requestWithMock(null, (client) => client.put('/users/me', payload))
+}
+
+export async function deleteAccount() {
+  return requestWithMock(null, (client) => client.delete('/users/me'))
 }
 
 export async function fetchSubscription() {
