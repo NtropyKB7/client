@@ -30,7 +30,7 @@ const sparkline = computed(() =>
 
 <template>
   <div class="flex flex-col gap-4">
-    <p class="text-caption text-grey-300">{{ greetingName }}님의 자금 흐름을 월별로 정리했어요.</p>
+    <p class="text-caption text-[#616966]">{{ greetingName }}님의 자금 흐름을 월별로 정리했어요.</p>
 
     <button
       v-if="latest"
@@ -45,7 +45,7 @@ const sparkline = computed(() =>
         <ChevronRightIcon class="size-4 text-primary-800" />
       </div>
       <p class="mt-3 text-head3 font-bold text-grey-500">{{ latest.monthLabel }} 리포트</p>
-      <p class="mt-1 text-caption text-grey-300">
+      <p class="mt-1 text-caption text-[#616966]">
         소득 {{ formatMan(latest.totalIncome) }} · 소비 {{ formatMan(latest.totalSpend) }}
       </p>
 
@@ -58,7 +58,7 @@ const sparkline = computed(() =>
           <span
             v-for="bar in sparkline"
             :key="bar.month"
-            class="w-2.5 rounded-[3px] bg-primary-600"
+            class="w-2.5 rounded-[3px] bg-[#0ab26e]"
             :style="{ height: `${bar.heightPercent}%` }"
           />
         </div>
@@ -67,15 +67,15 @@ const sparkline = computed(() =>
 
     <div class="flex flex-col gap-1">
       <div class="flex items-center justify-between">
-        <p class="text-body1 text-grey-500">지난 리포트</p>
-        <p class="text-[11px] text-grey-300">최근 6개월</p>
+        <p class="text-body1 font-bold text-grey-500">지난 리포트</p>
+        <p class="text-[11px] text-[#616966]">최근 6개월</p>
       </div>
 
       <button
         v-for="report in previousReports"
         :key="report.month"
         type="button"
-        class="mt-2 flex items-center gap-3 rounded-2xl border border-grey-50 bg-grey-white p-3.5 text-left"
+        class="mt-2 flex items-center gap-3 rounded-2xl border border-[#e3e8e5] bg-grey-white p-3.5 text-left"
         @click="$emit('select', report.month)"
       >
         <span
@@ -84,8 +84,8 @@ const sparkline = computed(() =>
           {{ report.monthLabel.replace('월', '') }}
         </span>
         <div class="min-w-0 flex-1">
-          <p class="text-body3 text-grey-500">{{ report.monthLabel }} 리포트</p>
-          <p class="mt-1 text-caption text-grey-300">
+          <p class="text-body3 font-bold text-grey-500">{{ report.monthLabel }} 리포트</p>
+          <p class="mt-1 text-caption text-[#616966]">
             소득 {{ formatMan(report.totalIncome) }} · 소비 {{ formatMan(report.totalSpend) }}
           </p>
         </div>
