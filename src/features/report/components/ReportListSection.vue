@@ -14,19 +14,8 @@ const latest = computed(() => props.reports[0])
 const previousReports = computed(() => props.reports.slice(1))
 const reportCount = computed(() => props.reports.length)
 
-// Figma 스파크라인은 실제 수치가 아니라 우상향 추세를 보여주는 장식용 그래프
-const SPARKLINE_HEIGHT_PERCENTS = [9, 29, 50, 75, 100]
-
-const sparkline = computed(() =>
-  props.reports
-    .slice(0, 5)
-    .slice()
-    .reverse()
-    .map((report, index) => ({
-      month: report.month,
-      heightPercent: SPARKLINE_HEIGHT_PERCENTS[index] ?? 100,
-    })),
-)
+// Figma 디자인(node 880:920)에 고정된 장식용 스파크라인 — 실제 수치와 무관하게 항상 이 모양으로 표시
+const SPARKLINE_BAR_HEIGHTS_PX = [5, 16, 28, 42, 56]
 </script>
 
 <template>
@@ -55,12 +44,12 @@ const sparkline = computed(() =>
           <p class="text-caption text-primary-800">이번 달 가용자금</p>
           <p class="mt-1 text-head1 text-primary-800">{{ formatMan(latest.availableFunds) }}</p>
         </div>
-        <div class="flex h-10 items-end gap-1.5">
+        <div class="flex items-end gap-1.5">
           <span
-            v-for="bar in sparkline"
-            :key="bar.month"
-            class="w-2.5 rounded-[3px] bg-[#0ab26e]"
-            :style="{ height: `${bar.heightPercent}%` }"
+            v-for="(height, index) in SPARKLINE_BAR_HEIGHTS_PX"
+            :key="index"
+            class="w-[18px] rounded-[3px] bg-[#0ab26e]"
+            :style="{ height: `${height}px` }"
           />
         </div>
       </div>
