@@ -58,7 +58,7 @@ async function handleLogout() {
   await router.push({ name: 'login' })
   onboardingStore.reset()
   mypageStore.reset()
-  authStore.logout()
+  await authStore.logout()
 }
 
 function selectMenuItem(id) {

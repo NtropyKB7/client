@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { fetchProfile, fetchSubscription } from '@/features/mypage/api'
 import { useMypageStore } from '@/features/mypage/store'
+import { useAuthStore } from '@/features/auth/store'
 import { fetchReportList, fetchReportDetail } from './api'
 import AppHeader from '@/shared/components/AppHeader.vue'
 import ReportListSection from './components/ReportListSection.vue'
@@ -11,6 +12,7 @@ import ReportDetailSection from './components/ReportDetailSection.vue'
 
 const router = useRouter()
 const mypageStore = useMypageStore()
+const authStore = useAuthStore()
 
 const subView = ref('list')
 const selectedMonth = ref(null)
@@ -33,7 +35,7 @@ const isSubscribed = computed(() => mypageStore.planId === 'pro')
 
 const { data: reportList } = useQuery({
   queryKey: ['report', 'list'],
-  queryFn: fetchReportList,
+  queryFn: () => fetchReportList(authStore.user?.userId),
 })
 
 const { data: reportDetail } = useQuery({

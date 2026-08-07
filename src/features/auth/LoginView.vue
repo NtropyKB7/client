@@ -8,26 +8,40 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL
 const router = useRouter()
 const authStore = useAuthStore()
 
-// 아래 두 경로는 Spring Security OAuth2 기본 컨벤션을 가정한 placeholder다.
-// 백엔드의 실제 소셜 로그인 진입 경로가 확정되면 이 값만 바꾸면 된다.
+// 카카오/구글이 인가 후 code를 되돌려주는 프론트 콜백 경로. 각 콘솔에 이 경로를 Redirect URI로 등록해둬야 한다.
+const REDIRECT_URI = `${window.location.origin}/auth/callback`
+
 // TEMP: apiBaseUrl이 비어있으면(백엔드 미연동) 실제 OAuth 대신 로컬 스텁으로 우회한다.
-// VITE_API_BASE_URL이 채워지면 이 if 블록을 삭제하고 아래 실제 로직만 남길 것.
+// VITE_API_BASE_URL이 채워지면 이 if 블록은 더 이상 타지 않는다.
 function loginWithKakao() {
-  if (import.meta.env.DEV || !apiBaseUrl) {
+  if (!apiBaseUrl) {
     authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
   }
-  window.location.href = `${apiBaseUrl}/oauth2/authorization/kakao`
+  const params = new URLSearchParams({
+    client_id: import.meta.env.VITE_KAKAO_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    state: 'kakao',
+  })
+  window.location.href = `https://kauth.kakao.com/oauth/authorize?${params}`
 }
 
 function loginWithGoogle() {
-  if (import.meta.env.DEV || !apiBaseUrl) {
+  if (!apiBaseUrl) {
     authStore.setAccessToken('debug')
     router.push({ name: 'home' })
     return
   }
-  window.location.href = `${apiBaseUrl}/oauth2/authorization/google`
+  const params = new URLSearchParams({
+    client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: 'code',
+    scope: 'email profile',
+    state: 'google',
+  })
+  window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
 }
 </script>
 
