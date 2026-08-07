@@ -273,14 +273,19 @@ const MOCK_AI_REPORT_DETAIL_BY_MONTH = {
 }
 
 function normalizeListItem(item) {
+  const totalIncome = item.totalIncome ?? null
+  const totalSpend = item.totalExpense ?? null
+
   return {
     month: item.yearMonth,
     monthLabel: deriveMonthLabel(item.yearMonth),
     reportTitle: item.reportTitle,
-    totalIncome: item.totalIncome ?? null,
-    totalSpend: item.totalExpense ?? null,
+    totalIncome,
+    totalSpend,
     // 목록 API는 availableFunds를 내려주지 않는다(상세 API에만 존재).
-    availableFunds: item.availableFunds ?? null,
+    // 상세 API 기준 availableFunds는 항상 totalIncome - totalExpense와 같으므로 동일하게 계산한다.
+    availableFunds:
+      item.availableFunds ?? (totalIncome != null && totalSpend != null ? totalIncome - totalSpend : null),
   }
 }
 
