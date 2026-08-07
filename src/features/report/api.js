@@ -319,10 +319,13 @@ function normalizeDetail(data) {
   }
 }
 
-export async function fetchReportList() {
+// GET /ai-reports는 다른 컨트롤러와 달리 Bearer 인증과 별개로 userId를 필수 쿼리로 요구한다
+// (스웨거 실측 확인) — axiosInstance의 FALLBACK_USER_ID는 미인증 상태에서만 주입되므로,
+// 실 로그인 사용자는 호출부에서 userId를 직접 넘겨야 한다.
+export async function fetchReportList(userId) {
   const data = await requestWithMock(
     { totalCount: MOCK_AI_REPORTS.length, reports: MOCK_AI_REPORTS },
-    (client) => client.get('/ai-reports'),
+    (client) => client.get('/ai-reports', { params: { userId } }),
   )
   return (data.reports ?? []).map(normalizeListItem)
 }
