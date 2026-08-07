@@ -12,6 +12,7 @@ defineEmits(['select'])
 
 const latest = computed(() => props.reports[0])
 const previousReports = computed(() => props.reports.slice(1))
+const reportCount = computed(() => props.reports.length)
 
 // Figma 스파크라인은 실제 수치가 아니라 우상향 추세를 보여주는 장식용 그래프
 const SPARKLINE_HEIGHT_PERCENTS = [9, 29, 50, 75, 100]
@@ -68,7 +69,7 @@ const sparkline = computed(() =>
     <div class="flex flex-col gap-1">
       <div class="flex items-center justify-between">
         <p class="text-body1 font-bold text-grey-500">지난 리포트</p>
-        <p class="text-[11px] text-[#616966]">최근 6개월</p>
+        <p class="text-[11px] text-[#616966]">최근 {{ reportCount }}개월</p>
       </div>
 
       <button
