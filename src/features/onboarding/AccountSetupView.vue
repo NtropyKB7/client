@@ -1,51 +1,32 @@
 <script setup>
-import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
-import { useModalStore } from '@/shared/store/modal'
-import BankPickerModal from './components/BankPickerModal.vue'
+import { useAccountConnections } from './composables/useAccountConnections'
+import { getBankStyle, isAccountActive, BIRTH_DATE_DEFAULT_YEAR } from './api'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
+import DatePicker from '@/shared/components/DatePicker.vue'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 
 const router = useRouter()
 const onboardingStore = useOnboardingStore()
-const modalStore = useModalStore()
 
-const accountForms = ref(
-  onboardingStore.accounts.length > 0
-    ? onboardingStore.accounts.map((a) => ({ ...a }))
-    : [{ bank: '', number: '' }],
-)
-
-function addRow() {
-  accountForms.value.push({ bank: '', number: '' })
-}
-
-function removeRow(index) {
-  accountForms.value.splice(index, 1)
-}
-
-async function pickBank(row) {
-  const selected = await modalStore.open(
-    BankPickerModal,
-    { selected: row.bank },
-    { position: 'bottom' },
-  )
-  if (selected) {
-    row.bank = selected
-  }
-}
-
-const isValid = computed(
-  () =>
-    accountForms.value.length > 0 &&
-    accountForms.value.every((row) => row.bank && /^\d{10,16}$/.test(row.number)),
-)
+const {
+  connectedAccounts,
+  pendingRows,
+  validPendingRows,
+  canProceed,
+  togglingAccountId,
+  addRow,
+  removeRow,
+  pickBank,
+  canDeactivate,
+  toggleAccount,
+} = useAccountConnections()
 
 function submit() {
-  if (!isValid.value) return
-  onboardingStore.setAccounts(accountForms.value.map((row) => ({ ...row })))
+  if (!canProceed.value) return
+  onboardingStore.setPendingAccountRows(validPendingRows.value.map((row) => ({ ...row })))
   router.push({ name: 'onboarding-analyzing' })
 }
 </script>
@@ -62,47 +43,115 @@ function submit() {
         </p>
       </div>
 
-      <div class="flex flex-col gap-4">
+      <div v-if="connectedAccounts?.length" class="flex flex-col gap-3">
+        <p class="text-body1 text-grey-500">연결된 계좌</p>
+
         <div
-          v-for="(row, index) in accountForms"
+          v-for="account in connectedAccounts"
+          :key="account.accountId"
+          class="flex items-center justify-between rounded-[20px] border border-grey-50 p-4"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="flex size-9 shrink-0 items-center justify-center rounded-xl text-body3 font-bold"
+              :style="{
+                backgroundColor: getBankStyle(account.bankName).bg,
+                color: getBankStyle(account.bankName).text,
+              }"
+            >
+              {{ getBankStyle(account.bankName).initial }}
+            </span>
+            <div>
+              <p class="text-body4 font-medium text-grey-500">{{ account.bankName }}</p>
+              <p class="text-caption text-grey-400">{{ account.accountNoMasked }}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="rounded-full px-3 py-1.5 text-caption font-bold transition-opacity disabled:opacity-40"
+            :class="
+              isAccountActive(account)
+                ? 'bg-primary-50 text-primary-800'
+                : 'bg-grey-30 text-grey-400'
+            "
+            :disabled="togglingAccountId === account.accountId || !canDeactivate(account)"
+            @click="toggleAccount(account)"
+          >
+            {{ isAccountActive(account) ? '연결됨' : '연결 끊김' }}
+          </button>
+        </div>
+
+        <p
+          v-if="connectedAccounts.some((account) => !canDeactivate(account))"
+          class="text-caption text-grey-400"
+        >
+          최소 1개 계좌는 연결되어 있어야 해요.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <p class="text-body1 text-grey-500">새 은행 연결</p>
+
+        <div
+          v-for="(row, index) in pendingRows"
           :key="index"
           class="flex flex-col gap-3 rounded-[20px] border border-grey-50 p-4"
         >
-          <p class="text-body1 text-grey-500">계좌 정보</p>
+          <div class="flex items-center justify-between">
+            <p class="text-body1 text-grey-500">은행 로그인 정보</p>
+            <button
+              v-if="pendingRows.length > 1"
+              type="button"
+              class="text-caption text-grey-400 underline"
+              @click="removeRow(index)"
+            >
+              삭제
+            </button>
+          </div>
 
           <div>
             <p class="mb-2 text-body3 text-grey-400">은행</p>
             <button
               type="button"
-              class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3.5 text-left text-body4"
+              class="flex w-full items-center justify-between rounded-xl bg-grey-30 px-3.5 py-3.5 text-left"
               @click="pickBank(row)"
             >
-              <span :class="row.bank ? 'text-grey-500' : 'text-grey-300'">{{
-                row.bank || '은행을 선택해 주세요'
-              }}</span>
+              <span class="text-body4" :class="row.bank ? 'text-grey-500' : 'text-grey-300'">
+                {{ row.bank?.bankName || '은행을 선택해 주세요' }}
+              </span>
               <ChevronDownIcon class="size-4 text-grey-400" />
             </button>
           </div>
 
           <div>
-            <p class="mb-2 text-body3 text-grey-400">계좌번호</p>
+            <p class="mb-2 text-body3 text-grey-400">은행 로그인 아이디</p>
             <input
-              v-model="row.number"
+              v-model="row.bankLoginId"
               type="text"
-              inputmode="numeric"
-              placeholder="숫자만 입력해 주세요"
+              placeholder="은행 로그인 아이디를 입력해 주세요"
               class="w-full rounded-xl bg-grey-30 px-3.5 py-3.5 text-body4 text-grey-500 placeholder:text-grey-300"
             />
           </div>
 
-          <button
-            v-if="accountForms.length > 1"
-            type="button"
-            class="self-end text-caption text-grey-400 underline"
-            @click="removeRow(index)"
-          >
-            삭제
-          </button>
+          <div>
+            <p class="mb-2 text-body3 text-grey-400">은행 로그인 비밀번호</p>
+            <input
+              v-model="row.bankLoginPassword"
+              type="password"
+              placeholder="비밀번호를 입력해 주세요"
+              class="w-full rounded-xl bg-grey-30 px-3.5 py-3.5 text-body4 text-grey-500 placeholder:text-grey-300"
+            />
+          </div>
+
+          <div v-if="row.bank?.birthDateRequired">
+            <p class="mb-2 text-body3 text-grey-400">생년월일</p>
+            <DatePicker
+              v-model="row.birthDate"
+              placeholder="생년월일을 선택해 주세요"
+              :initial-year="BIRTH_DATE_DEFAULT_YEAR"
+            />
+          </div>
         </div>
 
         <button
@@ -110,15 +159,15 @@ function submit() {
           class="rounded-2xl border border-grey-50 py-3.5 text-body4 font-medium text-primary-800"
           @click="addRow"
         >
-          + 계좌 추가하기
+          + 은행 추가하기
         </button>
 
         <p class="text-center text-caption text-grey-400">
-          계좌는 나중에 설정에서 추가하거나 변경할 수 있어요.
+          추가 계좌는 나중에 설정에서 연결할 수 있어요.
         </p>
       </div>
 
-      <Button class="mt-auto" :disabled="!isValid" @click="submit">다음</Button>
+      <Button class="mt-auto" :disabled="!canProceed" @click="submit">다음</Button>
     </div>
   </div>
 </template>
