@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
-import { fetchCategories } from '@/features/onboarding/api'
+import { fetchCategories, fetchPlatforms } from '@/features/onboarding/api'
 import { INCOME_METHOD_OPTIONS } from '@/shared/utils/incomeMethod'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
@@ -17,6 +17,7 @@ const props = defineProps({
 const modalStore = useModalStore()
 
 const { data: categories } = useQuery({ queryKey: ['categories'], queryFn: fetchCategories })
+const { data: platforms } = useQuery({ queryKey: ['platforms'], queryFn: fetchPlatforms })
 
 function initialDraft() {
   if (props.job) {
@@ -31,6 +32,7 @@ function initialDraft() {
       startTime: props.job.startTime,
       endTime: props.job.endTime,
       categoryId: props.job.categoryId ?? null,
+      platformIds: [...(props.job.platformIds ?? [])],
     }
   }
   return {
@@ -44,6 +46,7 @@ function initialDraft() {
     startTime: '',
     endTime: '',
     categoryId: null,
+    platformIds: [],
   }
 }
 
@@ -58,10 +61,38 @@ const selectedCategoryName = computed(
   () => categories.value?.find((category) => category.categoryId === draft.value.categoryId)?.name,
 )
 
+const categoryPlatforms = computed(
+  () => platforms.value?.filter((platform) => platform.categoryId === draft.value.categoryId) ?? [],
+)
+
+const canSave = computed(
+  () => categoryPlatforms.value.length === 0 || draft.value.platformIds.length > 0,
+)
+
 function selectCategory(categoryId) {
   draft.value.categoryId = categoryId
   isCategoryOpen.value = false
 }
+
+function togglePlatform(platformId) {
+  const index = draft.value.platformIds.indexOf(platformId)
+  if (index === -1) {
+    draft.value.platformIds.push(platformId)
+  } else {
+    draft.value.platformIds.splice(index, 1)
+  }
+}
+
+// 사용자가 카테고리를 직접 바꿀 때만 플랫폼 선택을 초기화한다. 모달이 처음 열릴 때
+// (edit 모드에서 기존 job의 categoryId로 draft가 시드되는 시점, prev === undefined)는 건드리지 않는다.
+watch(
+  () => draft.value.categoryId,
+  (next, prev) => {
+    if (prev !== undefined && prev !== next) {
+      draft.value.platformIds = []
+    }
+  },
+)
 
 function selectIncomeMethod(value) {
   draft.value.incomeMethodLabel = value
@@ -94,7 +125,11 @@ function toggleRegular() {
 }
 
 function save() {
-  modalStore.close({ ...draft.value, workDays: [...draft.value.workDays] })
+  modalStore.close({
+    ...draft.value,
+    workDays: [...draft.value.workDays],
+    platformIds: [...draft.value.platformIds],
+  })
 }
 
 function cancel() {
@@ -159,6 +194,31 @@ function cancel() {
           </button>
         </div>
       </div>
+    </div>
+
+    <div v-if="draft.categoryId" class="rounded-2xl border border-grey-50 p-3.5">
+      <p class="mb-2 text-caption font-medium text-grey-400">플랫폼 선택</p>
+      <ul class="flex flex-col gap-2.5">
+        <li v-for="platform in categoryPlatforms" :key="platform.platformId">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2"
+            @click="togglePlatform(platform.platformId)"
+          >
+            <span
+              class="flex size-4 shrink-0 items-center justify-center rounded-full border"
+              :class="
+                draft.platformIds.includes(platform.platformId)
+                  ? 'border-primary-500 bg-primary-500 text-white'
+                  : 'border-grey-100 text-transparent'
+              "
+            >
+              <CheckIcon class="size-2.5" />
+            </span>
+            <span class="text-body4 text-grey-500">{{ platform.platformName }}</span>
+          </button>
+        </li>
+      </ul>
     </div>
 
     <div>
@@ -305,7 +365,8 @@ function cancel() {
       </button>
       <button
         type="button"
-        class="flex-1 rounded-[14px] bg-primary-500 py-3.5 text-body1 text-white"
+        class="flex-1 rounded-[14px] bg-primary-500 py-3.5 text-body1 text-white transition-opacity disabled:opacity-40"
+        :disabled="!canSave"
         @click="save"
       >
         {{ mode === 'edit' ? '변경 저장' : '저장' }}

@@ -229,6 +229,46 @@ export async function fetchCategories() {
   )
 }
 
+// ── platform-controller ────────────────────────────────────────────────────
+// GET /api/platforms는 categoryId 쿼리 파라미터를 지원하지 않고 전체 목록을 한 번에 내려준다
+// (PlatformSummary에 categoryId가 실려 있어 카테고리별 매칭은 클라이언트에서 필터링).
+const MOCK_PLATFORMS = [
+  { platformId: 1, categoryId: 1, platformName: '배민' },
+  { platformId: 2, categoryId: 1, platformName: '쿠팡이츠' },
+  { platformId: 3, categoryId: 1, platformName: '요기요' },
+  { platformId: 4, categoryId: 2, platformName: '카카오T대리' },
+  { platformId: 5, categoryId: 2, platformName: '티맵대리' },
+  { platformId: 6, categoryId: 3, platformName: '부릉' },
+  { platformId: 7, categoryId: 3, platformName: '생각대로' },
+  { platformId: 8, categoryId: 4, platformName: '쿠팡물류' },
+  { platformId: 9, categoryId: 4, platformName: 'CJ대한통운' },
+  { platformId: 10, categoryId: 5, platformName: '청소연구소' },
+  { platformId: 11, categoryId: 5, platformName: '대리주부' },
+  { platformId: 12, categoryId: 6, platformName: '알바몬' },
+  { platformId: 13, categoryId: 6, platformName: '알바천국' },
+  { platformId: 14, categoryId: 8, platformName: 'CS링크' },
+  { platformId: 15, categoryId: 8, platformName: '헬프미' },
+  { platformId: 16, categoryId: 9, platformName: '펫시터코리아' },
+  { platformId: 17, categoryId: 9, platformName: '도그메이트' },
+  { platformId: 18, categoryId: 10, platformName: '유튜브' },
+  { platformId: 19, categoryId: 10, platformName: '인스타그램' },
+  { platformId: 20, categoryId: 11, platformName: '패널나우' },
+  { platformId: 21, categoryId: 11, platformName: '오베이' },
+]
+
+export async function fetchPlatforms() {
+  return requestWithMock(MOCK_PLATFORMS, (client) =>
+    client.get('/platforms').then((response) => ({ data: response.data?.platforms ?? [] })),
+  )
+}
+
+function platformIdsToPlatforms(platformIds) {
+  return (platformIds ?? [])
+    .map((platformId) => MOCK_PLATFORMS.find((platform) => platform.platformId === platformId))
+    .filter(Boolean)
+    .map(({ platformId, platformName }) => ({ platformId, platformName }))
+}
+
 const SETTLEMENT_TYPE_TO_LABEL = { HOURLY: '시급', MONTHLY: '월 정산', PER_TASK: '건당 정산' }
 const LABEL_TO_SETTLEMENT_TYPE = { 시급: 'HOURLY', '월 정산': 'MONTHLY', '건당 정산': 'PER_TASK' }
 const SETTLEMENT_TYPE_TO_WAGE_FIELD = {
@@ -278,6 +318,7 @@ function normalizeJob(job) {
     id: job.jobId,
     name: job.jobName,
     categoryId: job.categoryId,
+    platformIds: (job.platforms ?? []).map((platform) => platform.platformId),
     incomeMethodLabel: SETTLEMENT_TYPE_TO_LABEL[job.settlementType] ?? '시급',
     incomeAmount: job.hourlyWage ?? job.monthlyWage ?? job.perTaskWage ?? 0,
     fatigue: job.baseFatigue,
@@ -300,6 +341,7 @@ function toJobRequestPayload(draft) {
     settlementType,
     isRegular: draft.isRegular,
     baseFatigue: draft.fatigue,
+    platformIds: draft.platformIds ?? [],
     [wageField]: draft.incomeAmount,
   }
   if (draft.isRegular && draft.workDays?.length > 0) {
@@ -329,6 +371,7 @@ const mockJobs = [
     isRegular: true,
     baseFatigue: 3,
     isActive: true,
+    platforms: [{ platformId: 4, platformName: '카카오T대리' }],
     schedules: [
       { dayOfWeek: 'TUESDAY', startTime: [19, 0], endTime: [23, 0] },
       { dayOfWeek: 'THURSDAY', startTime: [19, 0], endTime: [23, 0] },
@@ -347,6 +390,10 @@ const mockJobs = [
     isRegular: true,
     baseFatigue: 2,
     isActive: true,
+    platforms: [
+      { platformId: 1, platformName: '배민' },
+      { platformId: 2, platformName: '쿠팡이츠' },
+    ],
     schedules: [
       { dayOfWeek: 'SATURDAY', startTime: [11, 0], endTime: [15, 0] },
       { dayOfWeek: 'SUNDAY', startTime: [11, 0], endTime: [15, 0] },
@@ -364,6 +411,7 @@ const mockJobs = [
     isRegular: false,
     baseFatigue: 1,
     isActive: true,
+    platforms: [{ platformId: 18, platformName: '유튜브' }],
     schedules: [],
   },
 ]
@@ -383,7 +431,12 @@ export async function createJob(draft) {
   if (shouldUseMock()) {
     await mockDelay()
     mockJobIdSeq += 1
-    mockJobs.push({ jobId: mockJobIdSeq, isActive: true, ...payload })
+    mockJobs.push({
+      jobId: mockJobIdSeq,
+      isActive: true,
+      ...payload,
+      platforms: platformIdsToPlatforms(payload.platformIds),
+    })
     return { jobId: mockJobIdSeq }
   }
   const { data } = await axiosInstance.post('/jobs', payload)
@@ -395,7 +448,13 @@ export async function updateJob(jobId, draft) {
   if (shouldUseMock()) {
     await mockDelay()
     const index = mockJobs.findIndex((job) => job.jobId === jobId)
-    if (index !== -1) mockJobs[index] = { ...mockJobs[index], ...payload }
+    if (index !== -1) {
+      mockJobs[index] = {
+        ...mockJobs[index],
+        ...payload,
+        platforms: platformIdsToPlatforms(payload.platformIds),
+      }
+    }
     return
   }
   await axiosInstance.put(`/jobs/${jobId}`, payload)
