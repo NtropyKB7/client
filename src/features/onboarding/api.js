@@ -93,7 +93,8 @@ export async function registerAccount({
   birthDate,
 }) {
   const payload = { connectionType: 'CODEF', organizationCode, bankLoginId, bankLoginPassword }
-  if (birthDate) payload.birthDate = birthDate
+  // DatePicker는 'YYYY-MM-DD'로 emit하지만 서버는 'YYYYMMDD'를 기대한다(Swagger AccountRegistrationRequest.birthDate 기준).
+  if (birthDate) payload.birthDate = birthDate.replaceAll('-', '')
   if (shouldUseMock()) {
     await mockDelay()
     const bank = MOCK_BANKS.find((candidate) => candidate.organizationCode === organizationCode)
