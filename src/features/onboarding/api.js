@@ -2,16 +2,8 @@ import axiosInstance from '@/shared/api/axiosInstance'
 import { requestWithMock } from '@/shared/api/request'
 import { mockDelay, shouldUseMock } from '@/shared/api/mockDelay'
 
-export const BANK_LIST = [
-  'KB국민은행',
-  '신한은행',
-  '우리은행',
-  '하나은행',
-  '카카오뱅크',
-  '토스뱅크',
-]
-
-// 은행 선택 모달의 아바타 배지 스타일(색상 · 이니셜). Figma 은행 선택 시안 기준.
+// 은행 선택 모달/연결 계좌 카드의 아바타 배지 스타일(색상 · 이니셜). Figma 은행 선택 시안 기준.
+// GET /api/banks가 내려주는 은행 중 여기 없는 곳은 getBankStyle()이 기본 스타일로 폴백한다.
 export const BANK_META = {
   KB국민은행: { initial: 'KB', bg: '#F2D140', text: '#181B1A' },
   신한은행: { initial: 'S', bg: '#3885E0', text: '#FCFCFC' },
@@ -19,6 +11,141 @@ export const BANK_META = {
   하나은행: { initial: 'H', bg: '#0DA18F', text: '#FCFCFC' },
   카카오뱅크: { initial: 'K', bg: '#FFD900', text: '#181B1A' },
   토스뱅크: { initial: '토', bg: '#B9BABA', text: '#181B1A' },
+}
+
+const DEFAULT_BANK_STYLE = { initial: '?', bg: '#E5E5E5', text: '#181B1A' }
+
+export function getBankStyle(bankName) {
+  return BANK_META[bankName] ?? { ...DEFAULT_BANK_STYLE, initial: bankName?.[0] ?? '?' }
+}
+
+// 생년월일 DatePicker를 열었을 때 처음 보여줄 연도. 대부분의 사용자가 성인일 것으로 보고
+// 오늘로부터 20년 전 근방에서 시작해 연도를 거슬러 올라가는 수고를 줄인다.
+export const BIRTH_DATE_DEFAULT_YEAR = new Date().getFullYear() - 20
+
+// ── 금융계좌(account-controller) ───────────────────────────────────────────
+// 이번 스코프는 connectionType: 'CODEF'(실제 은행 로그인 기반 계좌 연결)만 지원한다. 'VIRTUAL'은
+// 범위 밖. AccountRegistrationRequest 스키마엔 생년월일 필드가 문서화돼 있지 않지만,
+// BankSummary.birthDateRequired가 true인 은행(인터넷은행 등)은 CODEF 로그인에 생년월일이
+// 실제로 필요해 요청 바디에 birthDate를 실어 보낸다 — 백엔드가 미문서화 필드를 무시하더라도
+// 필요한 은행에서 누락되는 것보다는 안전하다.
+
+const MOCK_BANKS = [
+  {
+    organizationCode: '0004',
+    bankName: 'KB국민은행',
+    codefSupported: true,
+    birthDateRequired: false,
+  },
+  {
+    organizationCode: '0088',
+    bankName: '신한은행',
+    codefSupported: true,
+    birthDateRequired: false,
+  },
+  {
+    organizationCode: '0020',
+    bankName: '우리은행',
+    codefSupported: true,
+    birthDateRequired: false,
+  },
+  {
+    organizationCode: '0081',
+    bankName: '하나은행',
+    codefSupported: true,
+    birthDateRequired: false,
+  },
+  {
+    organizationCode: '0090',
+    bankName: '카카오뱅크',
+    codefSupported: true,
+    birthDateRequired: true,
+  },
+  { organizationCode: '0092', bankName: '토스뱅크', codefSupported: true, birthDateRequired: true },
+]
+
+export async function fetchBanks() {
+  const banks = await requestWithMock(MOCK_BANKS, (client) =>
+    client.get('/banks').then((response) => ({ data: response.data?.banks ?? [] })),
+  )
+  return banks.filter((bank) => bank.codefSupported)
+}
+
+let mockAccountIdSeq = 100
+const mockAccounts = []
+
+export async function fetchAccounts() {
+  return requestWithMock(
+    mockAccounts.map((account) => ({ ...account })),
+    (client) =>
+      client.get('/accounts').then((response) => ({ data: response.data?.accounts ?? [] })),
+  )
+}
+
+export function isAccountActive(account) {
+  return (account?.status ?? '').toUpperCase() === 'ACTIVE'
+}
+
+export async function registerAccount({
+  organizationCode,
+  bankLoginId,
+  bankLoginPassword,
+  birthDate,
+}) {
+  const payload = { connectionType: 'CODEF', organizationCode, bankLoginId, bankLoginPassword }
+  if (birthDate) payload.birthDate = birthDate
+  if (shouldUseMock()) {
+    await mockDelay()
+    const bank = MOCK_BANKS.find((candidate) => candidate.organizationCode === organizationCode)
+    mockAccountIdSeq += 1
+    mockAccounts.push({
+      accountId: mockAccountIdSeq,
+      bankName: bank?.bankName ?? '연결된 은행',
+      organizationCode,
+      connectionType: 'CODEF',
+      accountNoMasked: `${organizationCode}-***-******`,
+      status: 'ACTIVE',
+    })
+    return { accountCount: 1, connectionType: 'CODEF', organizationCode }
+  }
+  const { data } = await axiosInstance.post('/accounts', payload)
+  return data
+}
+
+export async function activateAccount(accountId) {
+  if (shouldUseMock()) {
+    await mockDelay()
+    const account = mockAccounts.find((candidate) => candidate.accountId === accountId)
+    if (account) account.status = 'ACTIVE'
+    return
+  }
+  await axiosInstance.patch(`/accounts/${accountId}/activate`)
+}
+
+export async function deactivateAccount(accountId) {
+  if (shouldUseMock()) {
+    await mockDelay()
+    const account = mockAccounts.find((candidate) => candidate.accountId === accountId)
+    if (account) account.status = 'INACTIVE'
+    return
+  }
+  await axiosInstance.patch(`/accounts/${accountId}/deactivate`)
+}
+
+/**
+ * 은행 로그인 row들을 순서대로 등록한다. 실패 지점에서 즉시 중단하고, 그 전까지 성공한 row는
+ * onRowRegistered로 알려 호출부(반응형 리스트)에서 바로 제거할 수 있게 한다.
+ */
+export async function registerAccountRows(rows, { onRowRegistered } = {}) {
+  for (const row of rows) {
+    await registerAccount({
+      organizationCode: row.bank.organizationCode,
+      bankLoginId: row.bankLoginId,
+      bankLoginPassword: row.bankLoginPassword,
+      birthDate: row.bank.birthDateRequired ? row.birthDate : undefined,
+    })
+    onRowRegistered?.(row)
+  }
 }
 
 // NOTE(2026-07-28, 공통 컴포넌트 PR 반영): JobCard가 docs/JobCard.png 실제 디자인 기준으로

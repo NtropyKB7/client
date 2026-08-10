@@ -1,17 +1,20 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useModalStore } from '@/shared/store/modal'
-import { BANK_LIST, BANK_META } from '../api'
+import { getBankStyle } from '../api'
 import SearchIcon from '@/shared/components/icons/SearchIcon.vue'
 
 const props = defineProps({
-  selected: { type: String, default: '' },
+  banks: { type: Array, default: () => [] },
+  selected: { type: String, default: '' }, // organizationCode
 })
 
 const modalStore = useModalStore()
 const query = ref('')
 
-const filteredBanks = computed(() => BANK_LIST.filter((bank) => bank.includes(query.value.trim())))
+const filteredBanks = computed(() =>
+  props.banks.filter((bank) => bank.bankName.includes(query.value.trim())),
+)
 
 function select(bank) {
   modalStore.close(bank)
@@ -36,19 +39,22 @@ function select(bank) {
     <div class="flex flex-col gap-2">
       <button
         v-for="bank in filteredBanks"
-        :key="bank"
+        :key="bank.organizationCode"
         type="button"
         class="flex items-center gap-3 rounded-2xl px-3 py-3 text-left transition-colors"
-        :class="bank === props.selected ? 'bg-primary-50' : 'hover:bg-grey-30'"
+        :class="bank.organizationCode === props.selected ? 'bg-primary-50' : 'hover:bg-grey-30'"
         @click="select(bank)"
       >
         <span
           class="flex size-9 shrink-0 items-center justify-center rounded-xl text-body3 font-bold"
-          :style="{ backgroundColor: BANK_META[bank]?.bg, color: BANK_META[bank]?.text }"
+          :style="{
+            backgroundColor: getBankStyle(bank.bankName).bg,
+            color: getBankStyle(bank.bankName).text,
+          }"
         >
-          {{ BANK_META[bank]?.initial }}
+          {{ getBankStyle(bank.bankName).initial }}
         </span>
-        <span class="text-body4 font-medium text-grey-500">{{ bank }}</span>
+        <span class="text-body4 font-medium text-grey-500">{{ bank.bankName }}</span>
       </button>
 
       <p v-if="filteredBanks.length === 0" class="py-6 text-center text-body4 text-grey-300">

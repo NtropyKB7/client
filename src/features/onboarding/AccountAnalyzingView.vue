@@ -1,9 +1,14 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQueryClient } from '@tanstack/vue-query'
+import { useOnboardingStore } from './store'
+import { registerAccountRows } from './api'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 
 const router = useRouter()
+const queryClient = useQueryClient()
+const onboardingStore = useOnboardingStore()
 const phase = ref(1)
 
 const STATUS_STEPS = [
@@ -12,13 +17,40 @@ const STATUS_STEPS = [
   { label: '잡별 수입 패턴 정리하기', step: 3 },
 ]
 
-onMounted(() => {
-  const timers = [
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+onMounted(async () => {
+  const phaseTimers = [
     setTimeout(() => (phase.value = 2), 600),
     setTimeout(() => (phase.value = 3), 1200),
-    setTimeout(() => router.replace({ name: 'onboarding-job' }), 1800),
   ]
-  return () => timers.forEach(clearTimeout)
+
+  // 실패 지점에서 중단 — 이미 성공해 서버에 등록된 row는 remaining에서 제거하고, 남은(미시도 +
+  // 실패한) row만 되돌려줘 AccountSetupView에서 재시도할 수 있게 한다.
+  const remaining = [...onboardingStore.pendingAccountRows]
+
+  try {
+    // 애니메이션 최소 노출 시간(~1.8초)과 실제 등록 완료 중 더 늦게 끝나는 쪽에 맞춰 다음 화면으로 이동.
+    await Promise.all([
+      registerAccountRows(onboardingStore.pendingAccountRows, {
+        onRowRegistered: (row) => {
+          const index = remaining.indexOf(row)
+          if (index !== -1) remaining.splice(index, 1)
+        },
+      }),
+      wait(1800),
+    ])
+    await queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    onboardingStore.setPendingAccountRows([])
+    router.replace({ name: 'onboarding-job' })
+  } catch {
+    onboardingStore.setPendingAccountRows(remaining)
+    router.replace({ name: 'onboarding-account' })
+  } finally {
+    phaseTimers.forEach(clearTimeout)
+  }
 })
 </script>
 

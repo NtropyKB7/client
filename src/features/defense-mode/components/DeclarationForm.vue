@@ -2,6 +2,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import Button from '@/shared/components/Button.vue'
+import DatePicker from '@/shared/components/DatePicker.vue'
 import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
 
 defineProps({
@@ -14,7 +15,14 @@ const selectedCause = ref(null)
 const startDate = ref('')
 const endDate = ref('')
 
-const isValid = computed(() => selectedCause.value && startDate.value && endDate.value)
+// 종료일이 시작일보다 앞설 수 없다 — DatePicker의 min-date로 애초에 못 고르게 막고, 시작일을
+// 나중에 바꿔 기존 종료일이 그보다 앞서게 되면 여기서 다시 걸러 제출을 막는다.
+const isRangeValid = computed(
+  () => !startDate.value || !endDate.value || endDate.value >= startDate.value,
+)
+const isValid = computed(
+  () => selectedCause.value && startDate.value && endDate.value && isRangeValid.value,
+)
 
 function selectCause(id) {
   selectedCause.value = id
@@ -64,23 +72,26 @@ function submit() {
         </button>
       </div>
 
-      <div v-if="selectedCause" class="mt-4 grid grid-cols-2 gap-2">
-        <label class="block text-caption font-bold text-grey-300">
-          시작일
-          <input
-            v-model="startDate"
-            type="date"
-            class="mt-1.5 w-full rounded-xl border border-grey-50 bg-grey-30 px-3 py-3 text-body4 text-grey-500"
-          />
-        </label>
-        <label class="block text-caption font-bold text-grey-300">
-          종료일
-          <input
-            v-model="endDate"
-            type="date"
-            class="mt-1.5 w-full rounded-xl border border-grey-50 bg-grey-30 px-3 py-3 text-body4 text-grey-500"
-          />
-        </label>
+      <div v-if="selectedCause" class="mt-4 flex flex-col gap-3">
+        <div>
+          <p class="text-caption font-bold text-grey-300">시작일</p>
+          <div class="mt-1.5">
+            <DatePicker v-model="startDate" placeholder="시작일을 선택해 주세요" />
+          </div>
+        </div>
+        <div>
+          <p class="text-caption font-bold text-grey-300">종료일</p>
+          <div class="mt-1.5">
+            <DatePicker
+              v-model="endDate"
+              placeholder="종료일을 선택해 주세요"
+              :min-date="startDate"
+            />
+          </div>
+          <p v-if="!isRangeValid" class="mt-1.5 text-caption text-[#eb3326]">
+            종료일은 시작일 이후여야 해요.
+          </p>
+        </div>
       </div>
 
       <div v-if="selectedCause" class="mt-4">

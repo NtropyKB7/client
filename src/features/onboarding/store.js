@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
 const STORAGE_KEY = 'ntropy_onboarding'
 
@@ -15,28 +15,21 @@ function loadPersisted() {
 export const useOnboardingStore = defineStore('onboarding', () => {
   const persisted = loadPersisted()
 
-  const accounts = ref(persisted?.accounts ?? [])
+  // AccountSetupView → AccountAnalyzingView로 넘어가는 동안 은행 로그인 비밀번호를 담아 나르는
+  // 임시 상태라 localStorage에는 절대 persist하지 않는다(메모리에만 유지).
+  const pendingAccountRows = ref([])
   const goal = ref(persisted?.goal ?? { amount: 2500000, fatigue: 3 })
-
-  const hasAccounts = computed(() => accounts.value.length > 0)
 
   function persist() {
     try {
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify({
-          accounts: accounts.value,
-          goal: goal.value,
-        }),
-      )
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ goal: goal.value }))
     } catch {
       // localStorage 쓰기 실패(용량 초과, 프라이빗 브라우징 등) 시 무시 — 인메모리 상태는 이미 갱신된 상태를 유지
     }
   }
 
-  function setAccounts(newAccounts) {
-    accounts.value = newAccounts
-    persist()
+  function setPendingAccountRows(rows) {
+    pendingAccountRows.value = rows
   }
 
   function setGoal(newGoal) {
@@ -45,16 +38,15 @@ export const useOnboardingStore = defineStore('onboarding', () => {
   }
 
   function reset() {
-    accounts.value = []
+    pendingAccountRows.value = []
     goal.value = { amount: 2500000, fatigue: 3 }
     localStorage.removeItem(STORAGE_KEY)
   }
 
   return {
-    accounts,
+    pendingAccountRows,
     goal,
-    hasAccounts,
-    setAccounts,
+    setPendingAccountRows,
     setGoal,
     reset,
   }
