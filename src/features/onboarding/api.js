@@ -459,3 +459,24 @@ export async function deactivateJob(jobId) {
   }
   await axiosInstance.patch(`/jobs/${jobId}/deactivate`)
 }
+
+// ── 저축목표(saving-goal-controller) ────────────────────────────────────────
+// 조회/수정 API는 없고 등록(POST)만 존재한다. targetMonth는 이 저장소의 다른 월 필드
+// (예: GET /api/ai-reports/{yearMonth})와 동일하게 'YYYY-MM' 문자열로 보낸다.
+let mockSavingGoalIdSeq = 1
+
+export function currentTargetMonth() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+export async function createSavingGoal({ targetAmount, laborIntensity, targetMonth }) {
+  const payload = { targetAmount, laborIntensity, targetMonth }
+  if (shouldUseMock()) {
+    await mockDelay()
+    mockSavingGoalIdSeq += 1
+    return { savingGoalId: mockSavingGoalIdSeq }
+  }
+  const { data } = await axiosInstance.post('/saving-goals', payload)
+  return data
+}

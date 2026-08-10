@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
 import { useAuthStore } from '@/features/auth/store'
-import { calculateAchievableRange } from './api'
+import { calculateAchievableRange, createSavingGoal, currentTargetMonth } from './api'
 import RangeSlider from './components/RangeSlider.vue'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
 import Button from '@/shared/components/Button.vue'
@@ -14,6 +14,7 @@ const authStore = useAuthStore()
 
 const amount = ref(onboardingStore.goal.amount)
 const fatigue = ref(onboardingStore.goal.fatigue)
+const isSubmitting = ref(false)
 
 const achievableRange = computed(() => calculateAchievableRange(amount.value, fatigue.value))
 
@@ -22,11 +23,23 @@ function formatWon(value) {
 }
 
 async function submit() {
-  onboardingStore.setGoal({ amount: amount.value, fatigue: fatigue.value })
-  // 온보딩 완료 여부는 서버가 판단한다(회원/인증 API 스코프엔 별도 완료 API가 없음) — /auth/me를
-  // 재조회해 라우터 가드가 최신 onboardingCompleted를 보게 만든다.
-  await authStore.fetchMe()
-  router.push({ name: 'home' })
+  isSubmitting.value = true
+  try {
+    // 실패하면(네트워크/검증 오류) 여기서 던져 아래 온보딩 완료 처리로 넘어가지 않는다 — 에러
+    // 토스트는 axiosInstance 응답 인터셉터가 자동으로 띄운다. 버튼은 finally에서 다시 활성화된다.
+    const { savingGoalId } = await createSavingGoal({
+      targetAmount: amount.value,
+      laborIntensity: fatigue.value,
+      targetMonth: currentTargetMonth(),
+    })
+    onboardingStore.setGoal({ amount: amount.value, fatigue: fatigue.value, savingGoalId })
+    // 온보딩 완료 여부는 서버가 판단한다(회원/인증 API 스코프엔 별도 완료 API가 없음) — /auth/me를
+    // 재조회해 라우터 가드가 최신 onboardingCompleted를 보게 만든다.
+    await authStore.fetchMe()
+    router.push({ name: 'home' })
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -91,7 +104,7 @@ async function submit() {
         <p class="mt-2 text-caption text-grey-400">캘린더 일정과 피로도 추천에 사용돼요.</p>
       </div>
 
-      <Button class="mt-auto" @click="submit">설정 완료</Button>
+      <Button class="mt-auto" :disabled="isSubmitting" @click="submit">설정 완료</Button>
     </div>
   </div>
 </template>
