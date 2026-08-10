@@ -44,7 +44,7 @@ onMounted(async () => {
     ])
     await queryClient.invalidateQueries({ queryKey: ['accounts'] })
     onboardingStore.setPendingAccountRows([])
-    router.replace({ name: 'onboarding-job' })
+    router.replace({ name: 'onboarding-account' })
   } catch {
     onboardingStore.setPendingAccountRows(remaining)
     router.replace({ name: 'onboarding-account' })
