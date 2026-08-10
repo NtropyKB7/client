@@ -3,7 +3,7 @@
 import { ref, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
-import { fetchDetectedJobs, createJob } from './api'
+import { fetchJobCandidates, createJob } from './api'
 import { useModalStore } from '@/shared/store/modal'
 import DetectedJobCard from './components/DetectedJobCard.vue'
 import JobFormModal from './components/JobFormModal.vue'
@@ -13,29 +13,25 @@ import Button from '@/shared/components/Button.vue'
 const router = useRouter()
 const modalStore = useModalStore()
 
-const { data: detectedJobs, isLoading } = useQuery({
-  queryKey: ['onboarding', 'detected-jobs'],
-  queryFn: fetchDetectedJobs,
+const { data: candidates, isLoading } = useQuery({
+  queryKey: ['job-candidates'],
+  queryFn: fetchJobCandidates,
 })
 
 const jobs = ref([])
 const isSubmitting = ref(false)
-const allConfirmed = computed(
-  () => jobs.value.length > 0 && jobs.value.every((job) => job.confirmed),
-)
+// 후보가 하나도 없어도(실제 백엔드는 빈 배열을 줄 수 있음) 다음 단계로 진행할 수 있어야 한다 —
+// 리스트가 비어있으면 공허하게 true, 남아있는 후보가 있으면 전부 확정(또는 삭제)됐을 때만 true.
+const allConfirmed = computed(() => jobs.value.every((job) => job.confirmed))
 
-watch(detectedJobs, (value) => {
+watch(candidates, (value) => {
   if (value && jobs.value.length === 0) {
-    jobs.value = value.map((job) => ({ ...job, confirmed: false }))
+    jobs.value = value.map((candidate) => ({ ...candidate, confirmed: false }))
   }
 })
 
 function updateJob(index, updated) {
   jobs.value[index] = { ...updated, confirmed: true }
-}
-
-function confirmJob(index) {
-  jobs.value[index] = { ...jobs.value[index], confirmed: true }
 }
 
 function removeJob(index) {
@@ -49,21 +45,10 @@ async function addCustomJob() {
   }
 }
 
-// 계좌 자동감지 잡(fetchDetectedJobs)은 실 카테고리 체계(GET /api/categories) 이전 mock 데이터라
-// categoryId가 없다 — job-controller에 등록할 때만 근접한 실 카테고리로 임시 매핑한다.
-const LEGACY_CATEGORY_TO_CATEGORY_ID = { driving: 2, delivery: 1, creative: 10, other: 6 }
-
 async function submit() {
   isSubmitting.value = true
   try {
-    await Promise.all(
-      jobs.value.map((job) =>
-        createJob({
-          ...job,
-          categoryId: job.categoryId ?? LEGACY_CATEGORY_TO_CATEGORY_ID[job.category] ?? 6,
-        }),
-      ),
-    )
+    await Promise.all(jobs.value.map((job) => createJob(job)))
     router.push({ name: 'onboarding-goal' })
   } finally {
     isSubmitting.value = false
@@ -79,8 +64,8 @@ async function submit() {
       <div>
         <h1 class="text-head1 text-grey-500">내 잡을 확인해 주세요</h1>
         <p class="mt-2 text-body4 text-grey-400">
-          최근 입금 내역에서 소득으로 보이는 {{ detectedJobs?.length ?? 0 }}건을 찾았어요.<br />
-          플랫폼을 확인하면 잡으로 등록돼요.
+          최근 입금 내역에서 소득으로 보이는 {{ candidates?.length ?? 0 }}건을 찾았어요.<br />
+          실제 내 잡이 맞으면 선택해서 등록해 주세요.
         </p>
       </div>
 
@@ -93,14 +78,17 @@ async function submit() {
           발견된 잡 {{ jobs.length }}개
         </span>
 
+        <p v-if="jobs.length === 0" class="text-body4 text-grey-400">
+          감지된 잡 후보가 없어요. 아래에서 직접 추가해 주세요.
+        </p>
+
         <div class="flex flex-col gap-3">
           <DetectedJobCard
             v-for="(job, index) in jobs"
-            :key="job.id"
+            :key="job.id ?? job.categoryId"
             :job="job"
             @save="(updated) => updateJob(index, updated)"
             @delete="removeJob(index)"
-            @confirm="confirmJob(index)"
           />
 
           <button
@@ -117,10 +105,7 @@ async function submit() {
         </p>
       </template>
 
-      <Button
-        class="mt-auto"
-        :disabled="jobs.length === 0 || !allConfirmed || isSubmitting"
-        @click="submit"
+      <Button class="mt-auto" :disabled="!allConfirmed || isSubmitting" @click="submit"
         >다음</Button
       >
     </div>
