@@ -1,21 +1,29 @@
 <script setup>
-import { onMounted } from 'vue'
+import { watch } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
 import BottomTabBar from './BottomTabBar.vue'
 import { fetchUnreadCount } from '@/features/notification/api'
 import { useToastStore } from '@/shared/store/toast'
 
 const toastStore = useToastStore()
 
-onMounted(async () => {
-  try {
-    const unreadCount = await fetchUnreadCount()
-    if (unreadCount > 0) {
-      toastStore.show(`확인하지 않은 알림이 ${unreadCount}개 있어요`)
-    }
-  } catch {
-    // 진입 직후 백그라운드 조회 실패는 조용히 무시 — 에러 토스트로 사용자를 방해하지 않는다
-  }
+const { data: unreadCount } = useQuery({
+  queryKey: ['notifications', 'unread-count'],
+  queryFn: fetchUnreadCount,
 })
+
+// 앱 마운트당 최초 1회만 토스트를 띄운다 — 이후 백그라운드 refetch로 데이터가
+// 갱신되더라도 다시 띄우지 않는다. 조회 실패 시에는 값이 바뀌지 않으므로
+// (에러는 이미 suppressErrorToast로 무시됨) 콜백이 아예 실행되지 않아 조용히 무시된다.
+watch(
+  unreadCount,
+  (count) => {
+    if (count > 0) {
+      toastStore.show(`확인하지 않은 알림이 ${count}개 있어요`)
+    }
+  },
+  { once: true },
+)
 </script>
 
 <template>
