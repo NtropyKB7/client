@@ -1,17 +1,30 @@
 <!-- src/features/home/HomeView.vue -->
 <script setup>
 import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { fetchDashboard } from './api'
+import { fetchUnreadCount } from '@/features/notification/api'
 import JobRecommendationCard from './components/JobRecommendationCard.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import NtropyLogo from '@/shared/components/icons/NtropyLogo.vue'
 import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
 
+const router = useRouter()
+
 const { data: dashboard, isLoading } = useQuery({
   queryKey: ['home', 'dashboard'],
   queryFn: fetchDashboard,
 })
+
+const { data: unreadCount } = useQuery({
+  queryKey: ['notifications', 'unread-count'],
+  queryFn: fetchUnreadCount,
+})
+
+function goToNotifications() {
+  router.push({ name: 'mypage', query: { view: 'notifications' } })
+}
 
 const remainingHours = computed(() =>
   Math.max(0, dashboard.value.goalHours.target - dashboard.value.goalHours.current),
@@ -37,7 +50,14 @@ const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore
     <template v-else-if="dashboard">
       <div class="flex items-center justify-between px-4 pt-[13px]">
         <NtropyLogo class="h-[22px] w-[72px] text-grey-500" />
-        <BellIcon class="size-6 text-grey-500" />
+        <button type="button" aria-label="알림" class="relative" @click="goToNotifications">
+          <BellIcon class="size-6 text-grey-500" />
+          <span
+            v-if="unreadCount > 0"
+            class="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-[#e53d33]"
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
       <div class="flex flex-col gap-2 px-4">

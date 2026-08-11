@@ -15,7 +15,6 @@ function loadPersisted() {
 export const useMypageStore = defineStore('mypage', () => {
   const persisted = loadPersisted()
 
-  const notifications = ref(persisted?.notifications ?? null)
   const planId = ref(persisted?.planId ?? null)
 
   function persist() {
@@ -23,7 +22,6 @@ export const useMypageStore = defineStore('mypage', () => {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
-          notifications: notifications.value,
           planId: planId.value,
         }),
       )
@@ -32,34 +30,18 @@ export const useMypageStore = defineStore('mypage', () => {
     }
   }
 
-  function initNotifications(list) {
-    if (notifications.value === null) {
-      notifications.value = list
-      persist()
-    }
-  }
-
-  function removeNotification(id) {
-    notifications.value = (notifications.value ?? []).filter((item) => item.id !== id)
-    persist()
-  }
-
   function setPlan(id) {
     planId.value = id
     persist()
   }
 
   function reset() {
-    notifications.value = null
     planId.value = null
     persist()
   }
 
   return {
-    notifications,
     planId,
-    initNotifications,
-    removeNotification,
     setPlan,
     reset,
   }

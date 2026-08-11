@@ -25,7 +25,11 @@ const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
 const mypageStore = useMypageStore()
 
-const subView = ref(route.query.view === 'subscription' ? 'subscription' : 'main')
+const subView = ref(
+  route.query.view === 'subscription' || route.query.view === 'notifications'
+    ? route.query.view
+    : 'main',
+)
 
 const { data: profile } = useQuery({
   queryKey: ['mypage', 'profile'],
@@ -102,7 +106,11 @@ function selectMenuItem(id) {
     :profile="profile"
     @back="goBackToMain"
   />
-  <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
+  <PermissionsManageSection
+    v-else-if="subView === 'permissions'"
+    :profile="profile"
+    @back="goBackToMain"
+  />
   <SubscriptionStatusSection
     v-else-if="subView === 'subscription' && subscription && plans"
     :subscription="subscription"

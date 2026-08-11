@@ -4,6 +4,8 @@ const MOCK_PROFILE = {
   name: '김동현',
   email: 'kdongh0406@gmail.com',
   avatarLabel: '동현',
+  alarmAgree: false,
+  locationAgree: false,
 }
 
 const MOCK_SUBSCRIPTION = {
@@ -52,23 +54,6 @@ const MOCK_PAYMENT_CONFIG = {
   customerId: '',
 }
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 'noti-1',
-    title: '7월 28일 근무 확인 알림',
-    timeRangeLabel: '11:00 - 15:00',
-    detailLabel: '배달 3건',
-    fatigueLabel: '피로도 보통',
-  },
-  {
-    id: 'noti-2',
-    title: '7월 26일 근무 확인 알림',
-    timeRangeLabel: '19:00 - 23:00',
-    detailLabel: '대리운전 2건',
-    fatigueLabel: '피로도 힘듦',
-  },
-]
-
 const PLAN_NAME_BY_CODE = { BASIC: 'Basic', PRO: 'Pro' }
 
 function toDateLabel(isoDateTime) {
@@ -80,6 +65,8 @@ function normalizeProfile(data) {
     name: data.name,
     email: data.email,
     avatarLabel: (data.name ?? '').slice(-2),
+    alarmAgree: data.alarmAgree ?? false,
+    locationAgree: data.locationAgree ?? false,
   }
 }
 
@@ -125,7 +112,7 @@ export async function fetchProfile() {
   )
 }
 
-// 정보수정/탈퇴 UI 진입점은 아직 없음 — 함수만 준비해둔다.
+// 탈퇴 UI 진입점은 아직 없음. 수정은 PermissionsManageSection의 알림/위치 동의 반영에서 사용.
 export async function updateProfile(payload) {
   return requestWithMock(null, (client) => client.put('/users/me', payload))
 }
@@ -136,13 +123,17 @@ export async function deleteAccount() {
 
 export async function fetchSubscription() {
   return requestWithMock(MOCK_SUBSCRIPTION, (client) =>
-    client.get('/subscriptions').then((response) => ({ data: normalizeSubscription(response.data) })),
+    client
+      .get('/subscriptions')
+      .then((response) => ({ data: normalizeSubscription(response.data) })),
   )
 }
 
 export async function fetchPlans() {
   return requestWithMock(MOCK_PLANS, (client) =>
-    client.get('/subscriptions/plans').then((response) => ({ data: normalizePlans(response.data) })),
+    client
+      .get('/subscriptions/plans')
+      .then((response) => ({ data: normalizePlans(response.data) })),
   )
 }
 
@@ -173,9 +164,7 @@ export async function initSubscription({ billingKey }) {
 }
 
 export async function updatePaymentMethod({ billingKey }) {
-  return requestWithMock(null, (client) => client.post('/subscriptions/payment-method', { billingKey }))
-}
-
-export async function fetchNotifications() {
-  return requestWithMock(MOCK_NOTIFICATIONS, (client) => client.get('/mypage/notifications'))
+  return requestWithMock(null, (client) =>
+    client.post('/subscriptions/payment-method', { billingKey }),
+  )
 }
