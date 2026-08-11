@@ -20,7 +20,7 @@ defineEmits(['back'])
 const router = useRouter()
 const queryClient = useQueryClient()
 
-const { data, isLoading } = useQuery({
+const { data, isLoading, isError } = useQuery({
   queryKey: ['notifications', 'list'],
   queryFn: () => fetchNotifications({ page: 0, size: 20 }),
 })
@@ -35,8 +35,12 @@ function invalidateNotificationQueries() {
 }
 
 async function openNotification(notification) {
-  await markNotificationRead(notification.notificationId)
-  invalidateNotificationQueries()
+  try {
+    await markNotificationRead(notification.notificationId)
+    invalidateNotificationQueries()
+  } catch {
+    // 읽음 처리 실패는 근무일지 확정 이동을 막지 않는다 — 부가 효과일 뿐, 핵심 동작이 아님
+  }
 
   const dateKey = formatDateKey(new Date(notification.createdAt))
   router.push({ name: 'calendar', query: { date: dateKey, autoConfirm: '1' } })
@@ -56,6 +60,8 @@ async function removeNotification(notificationId) {
       <ProfileHeader v-if="profile" :profile="profile" />
 
       <p v-if="isLoading" class="text-caption text-grey-300">불러오는 중...</p>
+
+      <p v-else-if="isError" class="text-caption text-grey-300">알림을 불러오지 못했어요.</p>
 
       <p v-else-if="!data?.notifications?.length" class="text-caption text-grey-300">
         알림 기록이 없어요.
