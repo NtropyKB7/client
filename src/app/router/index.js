@@ -83,10 +83,14 @@ router.beforeEach((to) => {
     return { name: 'login' }
   }
 
+  // user는 로그인 시 항상 채워지고, null인 경우는 새로고침 시 /auth/me 조회가 일시적으로
+  // 실패한 경우뿐이다. 이때 온보딩 미완료로 단정해 되돌려보내면 이미 온보딩을 마친 사용자가
+  // 새로고침할 때마다 온보딩 화면으로 튕기게 되므로, user를 아직 모르는 상태는 통과시킨다.
   if (
     to.meta.requiresOnboarding &&
     authStore.isAuthenticated &&
-    !authStore.user?.onboardingCompleted
+    authStore.user &&
+    !authStore.user.onboardingCompleted
   ) {
     return { name: 'onboarding-account' }
   }
