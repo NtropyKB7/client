@@ -8,6 +8,7 @@ defineProps({
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
   isFatigueOverThreshold: { type: Boolean, default: false },
+  isDefenseMode: { type: Boolean, default: false },
   primaryActionLabel: { type: String, required: true },
 })
 
@@ -22,6 +23,13 @@ const emit = defineEmits(['primary-action', 'open-entry'])
         {{ weather.icon }} {{ weather.label }}
       </span>
     </div>
+
+    <p
+      v-if="isDefenseMode"
+      class="mt-3 rounded-lg bg-rose-50 px-2.5 py-2 text-caption font-medium text-rose-500"
+    >
+      방어모드 기간이에요
+    </p>
 
     <p v-if="entries.length === 0" class="mt-3 text-caption text-grey-400">
       등록된 근무 계획이 없어요.
