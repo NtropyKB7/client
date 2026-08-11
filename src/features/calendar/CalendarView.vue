@@ -1,6 +1,7 @@
 <!-- src/features/calendar/CalendarView.vue -->
 <script setup>
 import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
@@ -26,6 +27,8 @@ import WorkPlanModal from './components/WorkPlanModal.vue'
 import DeleteConfirmModal from './components/DeleteConfirmModal.vue'
 import AppHeader from '@/shared/components/AppHeader.vue'
 
+const route = useRoute()
+const router = useRouter()
 const modalStore = useModalStore()
 const queryClient = useQueryClient()
 const defenseModeStore = useDefenseModeStore()
@@ -52,9 +55,20 @@ function isDateInDefenseRange(dateKey) {
 
 const today = new Date()
 const TODAY_DATE_KEY = formatDateKey(today)
-const currentYear = ref(today.getFullYear())
-const currentMonth = ref(today.getMonth() + 1)
-const selectedDateKey = ref(TODAY_DATE_KEY)
+
+// 알림 목록(NotificationsManageSection.vue)에서 ?date=YYYY-MM-DD&autoConfirm=1 형태로 넘어올 수 있다.
+// 형식이 올바르지 않거나 없으면 오늘 날짜로 폴백한다.
+const DATE_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/
+const queryDateKey =
+  typeof route.query.date === 'string' && DATE_KEY_PATTERN.test(route.query.date)
+    ? route.query.date
+    : null
+const initialDateKey = queryDateKey ?? TODAY_DATE_KEY
+const [initialYear, initialMonth] = initialDateKey.split('-').map(Number)
+
+const currentYear = ref(initialYear)
+const currentMonth = ref(initialMonth)
+const selectedDateKey = ref(initialDateKey)
 
 const { data: jobs } = useQuery({ queryKey: ['jobs'], queryFn: fetchJobs })
 
@@ -250,6 +264,25 @@ async function openConfirmModal(entry) {
   }
   invalidateCalendar()
 }
+
+// 알림에서 ?autoConfirm=1로 넘어온 경우, 해당 날짜의 dayData가 로드된 시점에 확정 가능한
+// 근무가 하나 있으면 자동으로 확정 모달을 띄운다. dayData의 vue-query 캐시가 이미 warm할 수도
+// 있으므로(watch의 값 변화 감지에만 의존하면 { once: true }가 발동하지 않을 수 있다),
+// { immediate: true } + 명시적 플래그로 warm/cold 캐시 두 경우를 모두 처리한다.
+const pendingAutoConfirm = ref(route.query.autoConfirm === '1')
+
+watch(
+  dayData,
+  (value) => {
+    if (!pendingAutoConfirm.value || !value) return
+    pendingAutoConfirm.value = false
+    if (unconfirmedEntry.value) {
+      openConfirmModal(unconfirmedEntry.value)
+    }
+    router.replace({ name: 'calendar', query: {} })
+  },
+  { immediate: true },
+)
 
 async function openDeleteConfirm(entry) {
   const confirmed = await modalStore.open(DeleteConfirmModal, { entry }, { position: 'center' })
