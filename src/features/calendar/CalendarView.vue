@@ -4,8 +4,10 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useModalStore } from '@/shared/store/modal'
+import { useMypageStore } from '@/features/mypage/store'
+import { fetchSubscription } from '@/features/mypage/api'
 import { useDefenseModeStore } from '@/features/defense-mode/store'
-import { fetchDefenseModeData } from '@/features/defense-mode/api'
+import { fetchDefenseModeData, fetchDefenseCalendar } from '@/features/defense-mode/api'
 import { fetchJobs } from '@/features/onboarding/api'
 import {
   fetchCalendarMonth,
@@ -32,6 +34,7 @@ const router = useRouter()
 const modalStore = useModalStore()
 const queryClient = useQueryClient()
 const defenseModeStore = useDefenseModeStore()
+const mypageStore = useMypageStore()
 
 const { data: defenseData } = useQuery({
   queryKey: ['defense-mode', 'active'],
@@ -45,6 +48,19 @@ watch(
   },
   { immediate: true },
 )
+
+// 방어모드는 Pro 구독 전용 기능이라, 캘린더용 지난 기간 조회(fetchDefenseCalendar)도
+// 구독 상태를 알아야 게이트할 수 있다(무료 유저 요청/에러 토스트 방지).
+const { data: subscription } = useQuery({
+  queryKey: ['mypage', 'subscription'],
+  queryFn: fetchSubscription,
+})
+
+watch(subscription, (value) => {
+  if (value) mypageStore.setPlan(value.planId)
+})
+
+const isSubscribed = computed(() => mypageStore.planId === 'pro')
 
 function isDateInDefenseRange(dateKey) {
   if (!defenseModeStore.isActive || !defenseModeStore.startDate || !defenseModeStore.endDate) {
@@ -81,6 +97,24 @@ const { data: dayData } = useQuery({
   queryKey: computed(() => ['calendar', 'day', selectedDateKey.value]),
   queryFn: () => fetchCalendarDay({ dateKey: selectedDateKey.value }),
 })
+
+// 현재 활성 기간(isDateInDefenseRange)과 별개로, 해당 월에 걸치는 지난(종료된) 방어모드 기간을
+// 가져와 캘린더에 함께 표시한다. 방어모드는 Pro 전용이라 isSubscribed일 때만 조회한다.
+const { data: defenseCalendarPeriods } = useQuery({
+  queryKey: computed(() => ['defense-mode', 'calendar', currentYear.value, currentMonth.value]),
+  queryFn: () => fetchDefenseCalendar({ year: currentYear.value, month: currentMonth.value }),
+  enabled: isSubscribed,
+})
+
+function isDateInPastDefensePeriods(dateKey) {
+  return (defenseCalendarPeriods.value ?? []).some(
+    (period) => dateKey >= period.startDate && dateKey <= period.endDate,
+  )
+}
+
+function isDefenseDate(dateKey) {
+  return isDateInDefenseRange(dateKey) || isDateInPastDefensePeriods(dateKey)
+}
 
 // 오늘부터 5일치 실황 예보(weather-controller). monthly에 내장된 weather는 예보 범위를 벗어나면
 // null로 오는 경우가 많아, 가까운 날짜는 이 실황 예보값으로 덮어써 보여준다.
@@ -119,7 +153,7 @@ const cells = computed(() =>
     if (!date) return null
     const dateKey = formatDateKey(date)
     const day = daysByDate.value.get(dateKey)
-    const isDefenseMode = isDateInDefenseRange(dateKey)
+    const isDefenseMode = isDefenseDate(dateKey)
     return {
       date,
       dateKey,
@@ -173,6 +207,7 @@ const selectedFatigueScore = computed(() => dayData.value?.fatigue?.score ?? nul
 const selectedFatigueOverThreshold = computed(
   () => dayData.value?.fatigue?.isOverThreshold ?? false,
 )
+const selectedIsDefenseMode = computed(() => isDefenseDate(selectedDateKey.value))
 
 const plannedHours = computed(() => monthData.value?.summary?.plannedHours ?? 0)
 const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
@@ -336,6 +371,7 @@ function openEntryDetail(entry) {
         :weather="selectedWeather"
         :fatigue-score="selectedFatigueScore"
         :is-fatigue-over-threshold="selectedFatigueOverThreshold"
+        :is-defense-mode="selectedIsDefenseMode"
         :primary-action-label="primaryActionLabel"
         @primary-action="handlePrimaryAction"
         @open-entry="openEntryDetail"
