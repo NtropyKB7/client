@@ -48,7 +48,7 @@ export async function fetchNotifications({ page = 0, size = 20 } = {}) {
 export async function fetchUnreadCount() {
   return requestWithMock(MOCK_UNREAD_COUNT, (client) =>
     client
-      .get('/notifications/unread-count')
+      .get('/notifications/unread-count', { suppressErrorToast: true })
       .then((response) => ({ data: response.data.unreadCount })),
   )
 }
