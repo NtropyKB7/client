@@ -25,7 +25,11 @@ const authStore = useAuthStore()
 const onboardingStore = useOnboardingStore()
 const mypageStore = useMypageStore()
 
-const subView = ref(route.query.view === 'subscription' ? 'subscription' : 'main')
+const subView = ref(
+  route.query.view === 'subscription' || route.query.view === 'notifications'
+    ? route.query.view
+    : 'main',
+)
 
 const { data: profile } = useQuery({
   queryKey: ['mypage', 'profile'],
