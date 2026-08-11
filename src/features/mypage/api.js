@@ -52,23 +52,6 @@ const MOCK_PAYMENT_CONFIG = {
   customerId: '',
 }
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 'noti-1',
-    title: '7월 28일 근무 확인 알림',
-    timeRangeLabel: '11:00 - 15:00',
-    detailLabel: '배달 3건',
-    fatigueLabel: '피로도 보통',
-  },
-  {
-    id: 'noti-2',
-    title: '7월 26일 근무 확인 알림',
-    timeRangeLabel: '19:00 - 23:00',
-    detailLabel: '대리운전 2건',
-    fatigueLabel: '피로도 힘듦',
-  },
-]
-
 const PLAN_NAME_BY_CODE = { BASIC: 'Basic', PRO: 'Pro' }
 
 function toDateLabel(isoDateTime) {
@@ -136,13 +119,17 @@ export async function deleteAccount() {
 
 export async function fetchSubscription() {
   return requestWithMock(MOCK_SUBSCRIPTION, (client) =>
-    client.get('/subscriptions').then((response) => ({ data: normalizeSubscription(response.data) })),
+    client
+      .get('/subscriptions')
+      .then((response) => ({ data: normalizeSubscription(response.data) })),
   )
 }
 
 export async function fetchPlans() {
   return requestWithMock(MOCK_PLANS, (client) =>
-    client.get('/subscriptions/plans').then((response) => ({ data: normalizePlans(response.data) })),
+    client
+      .get('/subscriptions/plans')
+      .then((response) => ({ data: normalizePlans(response.data) })),
   )
 }
 
@@ -173,9 +160,7 @@ export async function initSubscription({ billingKey }) {
 }
 
 export async function updatePaymentMethod({ billingKey }) {
-  return requestWithMock(null, (client) => client.post('/subscriptions/payment-method', { billingKey }))
-}
-
-export async function fetchNotifications() {
-  return requestWithMock(MOCK_NOTIFICATIONS, (client) => client.get('/mypage/notifications'))
+  return requestWithMock(null, (client) =>
+    client.post('/subscriptions/payment-method', { billingKey }),
+  )
 }
