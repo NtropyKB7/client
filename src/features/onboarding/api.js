@@ -149,51 +149,40 @@ export async function registerAccountRows(rows, { onRowRegistered } = {}) {
   }
 }
 
-// NOTE(2026-07-28, 공통 컴포넌트 PR 반영): JobCard가 docs/JobCard.png 실제 디자인 기준으로
-// { id, name, incomeMethodLabel, incomeAmount, fatigue, isRegular, workDays, startTime, endTime }
-// 형태의 job 객체 prop을 받도록 이미 구현되어 있다. 최초 계획의 { name, cyclePattern, settlementCycle }
-// 3필드 스펙은 폐기하고 아래 실제 JobCard API에 맞춘 mock 데이터를 사용한다.
-const MOCK_DETECTED_JOBS = [
+// ── job-controller: 잡 후보(GET /api/jobs/candidates) ──────────────────────
+// 계좌 거래내역을 카테고리·플랫폼 단위로 집계한 결과다. jobName/임금/근무스케줄은 내려주지 않는다
+// (그건 사용자가 후보를 실제 자기 잡으로 확정할 때 JobFormModal에서 직접 채운다).
+const MOCK_JOB_CANDIDATES = [
   {
-    id: 'job-1',
-    name: '대리운전',
-    incomeMethodLabel: '건당 정산',
-    incomeAmount: 15000,
-    fatigue: 3,
-    isRegular: true,
-    workDays: ['화', '목', '토'],
-    startTime: '19:00',
-    endTime: '23:00',
-    category: 'driving',
+    categoryId: 1,
+    categoryName: '배달',
+    platforms: [
+      { platformId: 1, platformName: '배민', depositName: '우아한형제들' },
+      { platformId: 2, platformName: '쿠팡이츠', depositName: '쿠팡이츠' },
+    ],
+    settlementCount: 12,
+    totalAmount: 540000,
   },
   {
-    id: 'job-2',
-    name: '배달라이더',
-    incomeMethodLabel: '건당 정산',
-    incomeAmount: 4500,
-    fatigue: 2,
-    isRegular: true,
-    workDays: ['토', '일'],
-    startTime: '11:00',
-    endTime: '15:00',
-    category: 'delivery',
+    categoryId: 2,
+    categoryName: '대리운전',
+    platforms: [{ platformId: 4, platformName: '카카오T대리', depositName: '카카오모빌리티' }],
+    settlementCount: 8,
+    totalAmount: 320000,
   },
   {
-    id: 'job-3',
-    name: '유튜브 애드센스',
-    incomeMethodLabel: '월 정산',
-    incomeAmount: 0,
-    fatigue: 1,
-    isRegular: false,
-    workDays: [],
-    startTime: '',
-    endTime: '',
-    category: 'creative',
+    categoryId: 10,
+    categoryName: '콘텐츠 제작',
+    platforms: [{ platformId: 18, platformName: '유튜브', depositName: '구글코리아' }],
+    settlementCount: 3,
+    totalAmount: 150000,
   },
 ]
 
-export async function fetchDetectedJobs() {
-  return requestWithMock(MOCK_DETECTED_JOBS, (client) => client.get('/onboarding/detected-jobs'))
+export async function fetchJobCandidates() {
+  return requestWithMock(MOCK_JOB_CANDIDATES, (client) =>
+    client.get('/jobs/candidates').then((response) => ({ data: response.data?.candidates ?? [] })),
+  )
 }
 
 /**
@@ -469,4 +458,25 @@ export async function deactivateJob(jobId) {
     return
   }
   await axiosInstance.patch(`/jobs/${jobId}/deactivate`)
+}
+
+// ── 저축목표(saving-goal-controller) ────────────────────────────────────────
+// 조회/수정 API는 없고 등록(POST)만 존재한다. targetMonth는 이 저장소의 다른 월 필드
+// (예: GET /api/ai-reports/{yearMonth})와 동일하게 'YYYY-MM' 문자열로 보낸다.
+let mockSavingGoalIdSeq = 1
+
+export function currentTargetMonth() {
+  const now = new Date()
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+}
+
+export async function createSavingGoal({ targetAmount, laborIntensity, targetMonth }) {
+  const payload = { targetAmount, laborIntensity, targetMonth }
+  if (shouldUseMock()) {
+    await mockDelay()
+    mockSavingGoalIdSeq += 1
+    return { savingGoalId: mockSavingGoalIdSeq }
+  }
+  const { data } = await axiosInstance.post('/saving-goals', payload)
+  return data
 }

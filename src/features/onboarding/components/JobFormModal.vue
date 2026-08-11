@@ -12,6 +12,7 @@ const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 const props = defineProps({
   mode: { type: String, default: 'add' }, // 'add' | 'edit'
   job: { type: Object, default: null },
+  title: { type: String, default: null },
 })
 
 const modalStore = useModalStore()
@@ -140,7 +141,7 @@ function cancel() {
 <template>
   <div class="flex flex-col gap-5">
     <h2 class="text-head2 text-grey-500">
-      {{ mode === 'edit' ? '잡 정보 수정' : '직접 잡 추가하기' }}
+      {{ title ?? (mode === 'edit' ? '잡 정보 수정' : '직접 잡 추가하기') }}
     </h2>
 
     <div>

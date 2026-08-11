@@ -26,6 +26,10 @@ const {
 
 function submit() {
   if (!canProceed.value) return
+  if (validPendingRows.value.length === 0) {
+    router.push({ name: 'onboarding-job' })
+    return
+  }
   onboardingStore.setPendingAccountRows(validPendingRows.value.map((row) => ({ ...row })))
   router.push({ name: 'onboarding-analyzing' })
 }
@@ -37,9 +41,15 @@ function submit() {
 
     <div class="flex flex-1 flex-col gap-6 px-4 pb-8 pt-8">
       <div>
-        <h1 class="text-head1 text-grey-500">계좌를 연결해 주세요</h1>
+        <h1 class="text-head1 text-grey-500">
+          {{ connectedAccounts?.length ? '연결된 계좌를 확인해 주세요' : '계좌를 연결해 주세요' }}
+        </h1>
         <p class="mt-2 text-body4 text-grey-400">
-          입출금 내역을 바탕으로 잡 수입과 소비 흐름을 자동으로 분류해드려요.
+          {{
+            connectedAccounts?.length
+              ? '사용할 계좌를 활성화하고, 필요하면 은행을 더 연결해 주세요.'
+              : '입출금 내역을 바탕으로 잡 수입과 소비 흐름을 자동으로 분류해드려요.'
+          }}
         </p>
       </div>
 
