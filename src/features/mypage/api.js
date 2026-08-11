@@ -4,6 +4,8 @@ const MOCK_PROFILE = {
   name: '김동현',
   email: 'kdongh0406@gmail.com',
   avatarLabel: '동현',
+  alarmAgree: false,
+  locationAgree: false,
 }
 
 const MOCK_SUBSCRIPTION = {
@@ -63,6 +65,8 @@ function normalizeProfile(data) {
     name: data.name,
     email: data.email,
     avatarLabel: (data.name ?? '').slice(-2),
+    alarmAgree: data.alarmAgree ?? false,
+    locationAgree: data.locationAgree ?? false,
   }
 }
 
@@ -108,7 +112,7 @@ export async function fetchProfile() {
   )
 }
 
-// 정보수정/탈퇴 UI 진입점은 아직 없음 — 함수만 준비해둔다.
+// 탈퇴 UI 진입점은 아직 없음. 수정은 PermissionsManageSection의 알림/위치 동의 반영에서 사용.
 export async function updateProfile(payload) {
   return requestWithMock(null, (client) => client.put('/users/me', payload))
 }

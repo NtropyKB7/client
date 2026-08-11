@@ -106,7 +106,11 @@ function selectMenuItem(id) {
     :profile="profile"
     @back="goBackToMain"
   />
-  <PermissionsManageSection v-else-if="subView === 'permissions'" @back="goBackToMain" />
+  <PermissionsManageSection
+    v-else-if="subView === 'permissions'"
+    :profile="profile"
+    @back="goBackToMain"
+  />
   <SubscriptionStatusSection
     v-else-if="subView === 'subscription' && subscription && plans"
     :subscription="subscription"
