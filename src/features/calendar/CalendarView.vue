@@ -276,7 +276,10 @@ watch(
   (value) => {
     if (!pendingAutoConfirm.value || !value) return
     pendingAutoConfirm.value = false
-    if (unconfirmedEntry.value) {
+    // 사용자가 알림 목표 날짜의 데이터가 로딩되기 전에 다른 날짜를 직접 선택하면, 그 사이
+    // dayData가 갱신되면서 잘못된 날짜에 모달이 뜨는 걸 방지. 이 시점 이후로는 재방문해도
+    // 자동확정을 다시 띄우지 않도록 플래그는 조건과 무관하게 소비한다.
+    if (selectedDateKey.value === initialDateKey && unconfirmedEntry.value) {
       openConfirmModal(unconfirmedEntry.value)
     }
     router.replace({ name: 'calendar', query: {} })
