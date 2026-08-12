@@ -2,6 +2,8 @@
 <script setup>
 defineProps({
   description: { type: String, required: true },
+  reasoning: { type: String, default: '' },
+  jobInsight: { type: String, default: '' },
 })
 </script>
 
@@ -13,5 +15,7 @@ defineProps({
       AI 인사이트
     </span>
     <p class="mt-3 text-body4 font-bold text-primary-800">{{ description }}</p>
+    <p v-if="reasoning" class="mt-2 text-caption text-primary-800">{{ reasoning }}</p>
+    <p v-if="jobInsight" class="mt-2 text-caption text-primary-800">{{ jobInsight }}</p>
   </div>
 </template>

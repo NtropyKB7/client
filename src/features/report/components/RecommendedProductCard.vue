@@ -14,8 +14,6 @@ const props = defineProps({
   njobTrendTip: { type: String, default: '' },
   financialType: { type: String, default: '' },
   simulatedExtraIncome: { type: Number, default: null },
-  reasoning: { type: String, default: '' },
-  jobInsight: { type: String, default: '' },
   futureIncomeTrend: { type: String, default: '' },
 })
 
@@ -44,13 +42,7 @@ const hasTags = computed(
 )
 
 const hasDetails = computed(
-  () =>
-    hasTerms.value ||
-    hasTags.value ||
-    !!props.reasoning ||
-    !!props.jobInsight ||
-    !!props.futureIncomeTrend ||
-    !!props.njobTrendTip,
+  () => hasTerms.value || hasTags.value || !!props.futureIncomeTrend || !!props.njobTrendTip,
 )
 </script>
 
@@ -88,8 +80,6 @@ const hasDetails = computed(
         <span v-if="maxMonthlyAmount != null">월 최대 {{ formatMan(maxMonthlyAmount) }}</span>
       </div>
 
-      <p v-if="reasoning" class="text-[11px] text-grey-300">{{ reasoning }}</p>
-      <p v-if="jobInsight" class="text-[11px] text-grey-300">{{ jobInsight }}</p>
       <p v-if="futureIncomeTrend" class="text-[11px] text-grey-300">{{ futureIncomeTrend }}</p>
 
       <div v-if="hasTags" class="flex flex-wrap gap-1.5">

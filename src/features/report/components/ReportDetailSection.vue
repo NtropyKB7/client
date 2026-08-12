@@ -98,7 +98,12 @@ function openDeliverySettings() {
       <SectionLabel label="AI 맞춤 제안" />
       <div class="relative">
         <div class="flex flex-col gap-4" :class="{ 'pointer-events-none blur-[5px]': showAiGate }">
-          <AiInsightCard v-if="detail.insight" :description="detail.insight" />
+          <AiInsightCard
+            v-if="detail.insight"
+            :description="detail.insight"
+            :reasoning="detail.reasoning"
+            :job-insight="detail.jobInsight"
+          />
           <RecommendedProductCard
             v-if="detail.recommendedProduct"
             :name="detail.recommendedProduct.name"
@@ -111,8 +116,6 @@ function openDeliverySettings() {
             :njob-trend-tip="detail.recommendedProduct.njobTrendTip"
             :financial-type="detail.financialType"
             :simulated-extra-income="detail.simulatedExtraIncome"
-            :reasoning="detail.reasoning"
-            :job-insight="detail.jobInsight"
             :future-income-trend="detail.futureIncomeTrend"
           />
         </div>
