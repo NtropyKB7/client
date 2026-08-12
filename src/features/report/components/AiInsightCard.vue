@@ -1,7 +1,6 @@
 <!-- src/features/report/components/AiInsightCard.vue -->
 <script setup>
 defineProps({
-  title: { type: String, required: true },
   description: { type: String, required: true },
 })
 </script>
@@ -13,7 +12,6 @@ defineProps({
     >
       AI 인사이트
     </span>
-    <p class="mt-3 text-body4 font-bold text-primary-800">{{ title }}</p>
-    <p class="mt-1 text-caption text-primary-800">{{ description }}</p>
+    <p class="mt-3 text-body4 font-bold text-primary-800">{{ description }}</p>
   </div>
 </template>
