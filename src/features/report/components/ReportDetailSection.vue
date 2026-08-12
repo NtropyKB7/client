@@ -2,14 +2,14 @@
 <script setup>
 import { computed } from 'vue'
 import { useModalStore } from '@/shared/store/modal'
-import { CATEGORY_COLORS } from '../api'
-import { formatMan, computeChangePercent } from '../utils'
+import { formatMan } from '../utils'
 import CategoryBar from './CategoryBar.vue'
 import CashFlowCard from './CashFlowCard.vue'
 import AiInsightCard from './AiInsightCard.vue'
 import JobPerformanceCard from './JobPerformanceCard.vue'
 import RecommendedProductCard from './RecommendedProductCard.vue'
 import ReportDeliverySettingsModal from './ReportDeliverySettingsModal.vue'
+import SectionLabel from './SectionLabel.vue'
 
 const props = defineProps({
   monthLabel: { type: String, required: true },
@@ -32,28 +32,19 @@ const nextReport = computed(() =>
 
 const yearLabel = computed(() => props.detail.month?.split('-')[0])
 
-const spendChangePercent = computed(() =>
-  previousReport.value
-    ? computeChangePercent(props.detail.totalSpend, previousReport.value.totalSpend)
-    : null,
-)
-const incomeChangePercent = computed(() =>
-  previousReport.value
-    ? computeChangePercent(props.detail.totalIncome, previousReport.value.totalIncome)
-    : null,
-)
-
 const spendChangeLabel = computed(() => {
-  if (spendChangePercent.value === null) return ''
-  return spendChangePercent.value <= 0
-    ? `전월 대비 ${Math.abs(spendChangePercent.value)}% 감소`
-    : `전월 대비 ${spendChangePercent.value}% 증가`
+  const percent = props.detail.expenseChangePercent
+  if (percent === null || percent === undefined) return ''
+  return percent <= 0 ? `전월 대비 ${Math.abs(percent)}% 감소` : `전월 대비 ${percent}% 증가`
 })
-const spendChangeClass = computed(() =>
-  spendChangePercent.value !== null && spendChangePercent.value <= 0
+const spendChangeClass = computed(() => {
+  const percent = props.detail.expenseChangePercent
+  return percent !== null && percent !== undefined && percent <= 0
     ? 'text-primary-800'
-    : 'text-[#e53d33]',
-)
+    : 'text-[#e53d33]'
+})
+
+const showAiGate = computed(() => !props.isSubscribed)
 
 function openDeliverySettings() {
   modalStore.open(ReportDeliverySettingsModal, {}, { position: 'center' })
@@ -103,11 +94,56 @@ function openDeliverySettings() {
       </div>
     </div>
 
+    <template v-if="detail.insight || detail.recommendedProduct">
+      <SectionLabel label="AI 맞춤 제안" />
+      <div class="relative">
+        <div class="flex flex-col gap-4" :class="{ 'pointer-events-none blur-[5px]': showAiGate }">
+          <AiInsightCard
+            v-if="detail.insight"
+            :description="detail.insight"
+            :reasoning="detail.reasoning"
+            :job-insight="detail.jobInsight"
+            :future-income-trend="detail.futureIncomeTrend"
+          />
+          <RecommendedProductCard
+            v-if="detail.recommendedProduct"
+            :name="detail.recommendedProduct.name"
+            :description="detail.recommendedProduct.description"
+            :provider="detail.recommendedProduct.provider"
+            :interest-rate="detail.recommendedProduct.interestRate"
+            :saving-period="detail.recommendedProduct.savingPeriod"
+            :max-monthly-amount="detail.recommendedProduct.maxMonthlyAmount"
+            :target-group="detail.recommendedProduct.targetGroup"
+            :njob-trend-tip="detail.recommendedProduct.njobTrendTip"
+            :financial-type="detail.financialType"
+            :simulated-extra-income="detail.simulatedExtraIncome"
+          />
+        </div>
+        <button
+          v-if="showAiGate"
+          type="button"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-1 rounded-2xl px-6 text-center"
+          @click="emit('subscribe')"
+        >
+          <p
+            class="text-body4 font-bold text-grey-500 [text-shadow:0_1px_3px_rgba(255,255,255,0.9)]"
+          >
+            구독자 전용
+          </p>
+          <p class="text-caption text-grey-300 [text-shadow:0_1px_3px_rgba(255,255,255,0.9)]">
+            구독 후 맞춤 인사이트와 금융상품을 확인하세요
+          </p>
+        </button>
+      </div>
+    </template>
+
+    <SectionLabel label="이번 달 자금 분석" />
+
     <CashFlowCard
       :total-income="detail.totalIncome"
       :total-spend="detail.totalSpend"
       :available-funds="detail.availableFunds"
-      :income-change-percent="incomeChangePercent"
+      :income-change-percent="detail.incomeChangePercent"
     />
 
     <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
@@ -117,33 +153,15 @@ function openDeliverySettings() {
           {{ spendChangeLabel }}
         </p>
       </div>
-      <div class="mt-3 flex flex-col gap-3">
-        <CategoryBar
-          v-for="(category, index) in detail.categories"
-          :key="category.id"
-          :label="category.label"
-          :percent="category.percent"
-          :color-class="CATEGORY_COLORS[index % CATEGORY_COLORS.length]"
-        />
+      <div class="mt-3">
+        <CategoryBar :categories="detail.categories" />
       </div>
     </div>
 
-    <JobPerformanceCard v-if="isSubscribed && detail.jobBreakdown?.length" :jobs="detail.jobBreakdown" />
-
-    <AiInsightCard
-      v-if="isSubscribed && detail.insight"
-      :title="detail.insight.title"
-      :description="detail.insight.description"
-    />
-
-    <RecommendedProductCard
-      v-if="detail.recommendedProduct"
-      :name="detail.recommendedProduct.name"
-      :description="detail.recommendedProduct.description"
-      :provider="detail.recommendedProduct.provider"
-      :is-subscribed="isSubscribed"
-      @subscribe="emit('subscribe')"
-    />
+    <template v-if="isSubscribed && detail.jobs?.length">
+      <SectionLabel label="잡별 근무 분석" />
+      <JobPerformanceCard :jobs="detail.jobs" />
+    </template>
 
     <button
       type="button"

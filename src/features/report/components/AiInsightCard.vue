@@ -1,8 +1,10 @@
 <!-- src/features/report/components/AiInsightCard.vue -->
 <script setup>
 defineProps({
-  title: { type: String, required: true },
   description: { type: String, required: true },
+  reasoning: { type: String, default: '' },
+  jobInsight: { type: String, default: '' },
+  futureIncomeTrend: { type: String, default: '' },
 })
 </script>
 
@@ -13,7 +15,11 @@ defineProps({
     >
       AI 인사이트
     </span>
-    <p class="mt-3 text-body4 font-bold text-primary-800">{{ title }}</p>
-    <p class="mt-1 text-caption text-primary-800">{{ description }}</p>
+    <p class="mt-3 text-body4 font-bold text-primary-800">{{ description }}</p>
+    <p v-if="reasoning" class="mt-2 text-caption text-primary-800">{{ reasoning }}</p>
+    <p v-if="jobInsight" class="mt-2 text-caption text-primary-800">{{ jobInsight }}</p>
+    <p v-if="futureIncomeTrend" class="mt-2 text-caption text-primary-800">
+      {{ futureIncomeTrend }}
+    </p>
   </div>
 </template>
