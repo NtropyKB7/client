@@ -14,7 +14,6 @@ const props = defineProps({
   njobTrendTip: { type: String, default: '' },
   financialType: { type: String, default: '' },
   simulatedExtraIncome: { type: Number, default: null },
-  futureIncomeTrend: { type: String, default: '' },
 })
 
 const FINANCIAL_TYPE_LABELS = {
@@ -41,9 +40,7 @@ const hasTags = computed(
   () => !!financialTypeLabel.value || !!props.targetGroup || !!simulatedExtraIncomeLabel.value,
 )
 
-const hasDetails = computed(
-  () => hasTerms.value || hasTags.value || !!props.futureIncomeTrend || !!props.njobTrendTip,
-)
+const hasDetails = computed(() => hasTerms.value || hasTags.value || !!props.njobTrendTip)
 </script>
 
 <template>
@@ -79,8 +76,6 @@ const hasDetails = computed(
         <span v-if="savingPeriod != null">{{ savingPeriod }}개월</span>
         <span v-if="maxMonthlyAmount != null">월 최대 {{ formatMan(maxMonthlyAmount) }}</span>
       </div>
-
-      <p v-if="futureIncomeTrend" class="text-[11px] text-grey-300">{{ futureIncomeTrend }}</p>
 
       <div v-if="hasTags" class="flex flex-wrap gap-1.5">
         <span

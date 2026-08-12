@@ -103,6 +103,7 @@ function openDeliverySettings() {
             :description="detail.insight"
             :reasoning="detail.reasoning"
             :job-insight="detail.jobInsight"
+            :future-income-trend="detail.futureIncomeTrend"
           />
           <RecommendedProductCard
             v-if="detail.recommendedProduct"
@@ -116,7 +117,6 @@ function openDeliverySettings() {
             :njob-trend-tip="detail.recommendedProduct.njobTrendTip"
             :financial-type="detail.financialType"
             :simulated-extra-income="detail.simulatedExtraIncome"
-            :future-income-trend="detail.futureIncomeTrend"
           />
         </div>
         <button
