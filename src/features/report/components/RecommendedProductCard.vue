@@ -47,9 +47,10 @@ const hasDetails = computed(() => hasTerms.value || hasTags.value || !!props.njo
   <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
     <div class="flex items-center gap-3">
       <span
-        class="flex size-12 shrink-0 items-center justify-center rounded-full bg-[#d1f5e3] text-primary-800"
+        class="relative flex size-12 shrink-0 items-center justify-center rounded-full bg-[#d1f5e3] text-primary-800"
       >
         <SparkleIcon class="size-[22px]" />
+        <span class="absolute top-[7px] right-[9px] size-1.5 rounded-full bg-primary-800" />
       </span>
       <div class="min-w-0 flex-1">
         <div class="flex items-center justify-between gap-2">
