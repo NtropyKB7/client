@@ -41,6 +41,17 @@ const goalIncomeRemaining = computed(
 )
 
 const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
+
+const greetingMonthLabel = computed(() => {
+  const match = /^(\d{4})-(\d{2})$/.exec(dashboard.value.targetMonth ?? '')
+  return match ? `${Number(match[2])}월` : (dashboard.value.targetMonth ?? '이번달')
+})
+
+const averageWage = computed(() => {
+  const { current } = dashboard.value.goalHours
+  if (!current) return 0
+  return Math.round(dashboard.value.goalIncome.amount / current)
+})
 </script>
 
 <template>
@@ -61,7 +72,7 @@ const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore
       </div>
 
       <div class="flex flex-col gap-2 px-4">
-        <p class="text-body1 text-grey-400">{{ dashboard.greetingName }}님의 이번달</p>
+        <p class="text-body1 text-grey-400">{{ dashboard.greetingName }}님의 {{ greetingMonthLabel }}</p>
         <p class="text-head1 leading-[1.5] text-grey-500">
           목표 근무시간까지<br />
           <span class="text-primary-600">{{ remainingHours }}</span
@@ -88,7 +99,7 @@ const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore
         </div>
       </div>
 
-      <div class="flex flex-col gap-3">
+      <div v-if="dashboard.jobRecommendations.length > 0" class="flex flex-col gap-3">
         <p class="pl-4 text-body1 text-grey-500">잡별 추천 근무시간</p>
         <div class="scrollbar-none flex overflow-x-auto py-1">
           <div class="w-4 shrink-0" aria-hidden="true" />
@@ -147,11 +158,11 @@ const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore
           </div>
 
           <div class="rounded-2xl border border-grey-50 p-3.5">
-            <p class="text-caption font-medium text-grey-400">실질 시급</p>
+            <p class="text-caption font-medium text-grey-400">평균 시급</p>
             <p class="mt-2 text-head3 font-bold text-grey-500">
-              {{ dashboard.realWage.real.toLocaleString() }}원
+              {{ averageWage.toLocaleString() }}원
             </p>
-            <p class="mt-2 text-caption text-grey-400">{{ dashboard.realWage.detail }}</p>
+            <p class="mt-2 text-caption text-grey-400">이번 달 수입 ÷ 근무시간</p>
           </div>
         </div>
       </div>
