@@ -72,14 +72,16 @@ const averageWage = computed(() => {
       </div>
 
       <div class="flex flex-col gap-2 px-4">
-        <p class="text-body1 text-grey-400">{{ dashboard.greetingName }}님의 {{ greetingMonthLabel }}</p>
+        <p class="text-body1 text-grey-400">
+          {{ dashboard.greetingName }}님의 {{ greetingMonthLabel }}
+        </p>
         <p class="text-head1 leading-[1.5] text-grey-500">
           목표 근무시간까지<br />
           <span class="text-primary-600">{{ remainingHours }}</span
           >시간 남았어요
         </p>
 
-        <div class="relative mt-4">
+        <div class="relative mt-10">
           <div
             class="absolute -top-8 -translate-x-1/2 rounded-[4px] bg-primary-600 px-2 py-1 text-caption font-semibold text-white transition-all"
             :style="{ left: `${hoursProgressPercent}%` }"
