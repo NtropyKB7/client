@@ -31,6 +31,16 @@ const subView = ref(
     : 'main',
 )
 
+// route.push({ name: 'mypage', query: { view: ... } })로 같은 라우트에 query만 바뀌어
+// 진입하는 경우(예: 마이페이지 화면 자체에서 벨 클릭) 컴포넌트가 리마운트되지 않아
+// subView 초기값이 갱신되지 않으므로, query 변화를 별도로 watch한다.
+watch(
+  () => route.query.view,
+  (view) => {
+    if (view === 'subscription' || view === 'notifications') subView.value = view
+  },
+)
+
 const { data: profile } = useQuery({
   queryKey: ['mypage', 'profile'],
   queryFn: fetchProfile,

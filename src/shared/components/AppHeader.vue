@@ -1,7 +1,10 @@
 <!-- src/shared/components/AppHeader.vue -->
 <script setup>
+import { useRouter } from 'vue-router'
+import { useQuery } from '@tanstack/vue-query'
 import BellIcon from './icons/BellIcon.vue'
 import ChevronLeftIcon from './icons/ChevronLeftIcon.vue'
+import { fetchUnreadCount } from '@/features/notification/api'
 
 defineProps({
   title: { type: String, required: true },
@@ -9,6 +12,17 @@ defineProps({
 })
 
 defineEmits(['back'])
+
+const router = useRouter()
+
+const { data: unreadCount } = useQuery({
+  queryKey: ['notifications', 'unread-count'],
+  queryFn: fetchUnreadCount,
+})
+
+function goToNotifications() {
+  router.push({ name: 'mypage', query: { view: 'notifications' } })
+}
 </script>
 
 <template>
@@ -25,6 +39,19 @@ defineEmits(['back'])
       <ChevronLeftIcon class="size-6" />
     </button>
     <h1 class="truncate text-[15px] font-bold text-grey-500">{{ title }}</h1>
-    <BellIcon v-if="!back" class="absolute right-4 size-6 text-grey-500" />
+    <button
+      v-if="!back"
+      type="button"
+      aria-label="알림"
+      class="absolute right-4"
+      @click="goToNotifications"
+    >
+      <BellIcon class="size-6 text-grey-500" />
+      <span
+        v-if="unreadCount > 0"
+        class="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-[#e53d33]"
+        aria-hidden="true"
+      />
+    </button>
   </header>
 </template>
