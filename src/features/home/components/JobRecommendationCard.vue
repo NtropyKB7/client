@@ -8,7 +8,6 @@ const props = defineProps({
 const STATUS_STYLES = {
   blue: { border: 'border-[rgba(59,122,245,0.35)]', badge: 'bg-[#E8F2FF] text-[#3B7AF5]' },
   yellow: { border: 'border-[rgba(255,166,0,0.35)]', badge: 'bg-[#FFF5D9] text-[#FFA600]' },
-  red: { border: 'border-[rgba(240,64,64,0.35)]', badge: 'bg-[#FFE8E5] text-[#F04040]' },
 }
 
 const style = computed(() => STATUS_STYLES[props.job.status.tone])
@@ -36,7 +35,7 @@ const style = computed(() => STATUS_STYLES[props.job.status.tone])
     </div>
 
     <p class="mt-2 text-caption text-grey-400">
-      피로도 {{ job.fatigue.toFixed(1) }} · 예상 {{ job.expectedIncome.toLocaleString() }}원
+      피로도 {{ job.fatigue }} · 예상 {{ job.expectedIncome.toLocaleString() }}원
     </p>
   </div>
 </template>
