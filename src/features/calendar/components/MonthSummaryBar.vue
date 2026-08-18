@@ -16,7 +16,7 @@ function progressPercent(value, target) {
 <template>
   <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
     <div class="flex items-center justify-between">
-      <p class="text-body3 text-grey-500">실제/계획 근무 시간</p>
+      <p class="text-body3 text-grey-500">계획/추천 근무시간</p>
       <p class="text-caption text-grey-400">{{ actualHours }} / {{ plannedHours }}시간</p>
     </div>
     <div class="mt-2 h-1 rounded-full bg-grey-50">
@@ -27,7 +27,7 @@ function progressPercent(value, target) {
     </div>
 
     <div class="mt-4 flex items-center justify-between">
-      <p class="text-body3 text-grey-500">계획 근무 소득</p>
+      <p class="text-body3 text-grey-500">실제/목표 근무 소득</p>
       <p class="text-caption text-grey-400">
         {{ Math.round(plannedIncome / 10000) }} / {{ Math.round(targetIncome / 10000) }}만원
       </p>
