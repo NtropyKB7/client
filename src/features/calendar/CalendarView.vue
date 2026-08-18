@@ -133,9 +133,11 @@ const daysByDate = computed(() => {
   return map
 })
 
-// COMPLETED 외의 값(PENDING 등, 백엔드 enum 전체가 문서화되어 있지 않음)은 전부 정산 예정으로 취급.
-function mapSettlementStatus(settlementStatus) {
-  return settlementStatus === 'COMPLETED' ? 'settled' : 'pending'
+// COMPLETED 외의 값(PENDING 등, 백엔드 enum 전체가 문서화되어 있지 않음)은 날짜가 지나야만
+// 정산 예정으로 취급한다. 오늘/미래 날짜의 계획은 아직 정산 예정에 포함하지 않는다.
+function mapSettlementStatus(settlementStatus, dateKey) {
+  if (settlementStatus === 'COMPLETED') return 'settled'
+  return dateKey < TODAY_DATE_KEY ? 'pending' : 'none'
 }
 
 const grid = computed(() => getMonthGrid(currentYear.value, currentMonth.value))
@@ -158,7 +160,11 @@ const cells = computed(() =>
       date,
       dateKey,
       dayNumber: date.getDate(),
-      status: isDefenseMode ? 'defense' : day ? mapSettlementStatus(day.settlementStatus) : 'none',
+      status: isDefenseMode
+        ? 'defense'
+        : day
+          ? mapSettlementStatus(day.settlementStatus, dateKey)
+          : 'none',
       // TODO: job/category-controller 연동 후 카테고리별 색상 dot으로 복원(현재 백엔드 jobs[]엔 category 없음)
       hasWork: (day?.jobs?.length ?? 0) > 0,
       isSelected: dateKey === selectedDateKey.value,
