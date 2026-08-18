@@ -216,6 +216,7 @@ const selectedFatigueOverThreshold = computed(
 const selectedIsDefenseMode = computed(() => isDefenseDate(selectedDateKey.value))
 
 const plannedHours = computed(() => monthData.value?.summary?.plannedHours ?? 0)
+const actualHours = computed(() => monthData.value?.summary?.actualHours ?? 0)
 const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
 const targetIncome = computed(
   () => monthData.value?.summary?.targetAmount ?? MONTH_SUMMARY_TARGET.income,
@@ -384,8 +385,8 @@ function openEntryDetail(entry) {
       />
 
       <MonthSummaryBar
+        :actual-hours="actualHours"
         :planned-hours="plannedHours"
-        :target-hours="MONTH_SUMMARY_TARGET.hours"
         :planned-income="plannedIncome"
         :target-income="targetIncome"
       />

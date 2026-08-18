@@ -287,9 +287,10 @@ function buildMockMonthlySummary(year, month) {
   const plannedHours = Math.round(
     monthEntries.reduce((sum, entry) => sum + mockEntryHours(entry), 0),
   )
+  // 'planned'(아직 근무 전)만 제외하고, 근무일지가 작성된 'confirmed'/'settled'는 모두 실제 근무로 집계.
   const actualHours = Math.round(
     monthEntries
-      .filter((entry) => entry.status === 'settled')
+      .filter((entry) => entry.status !== 'planned')
       .reduce((sum, entry) => sum + mockEntryHours(entry), 0),
   )
 
