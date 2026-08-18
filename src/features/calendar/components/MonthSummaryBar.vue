@@ -27,7 +27,7 @@ function progressPercent(value, target) {
     </div>
 
     <div class="mt-4 flex items-center justify-between">
-      <p class="text-body3 text-grey-500">실제/목표 근무 소득</p>
+      <p class="text-body3 text-grey-500">계획/목표 근무 소득</p>
       <p class="text-caption text-grey-400">
         {{ Math.round(plannedIncome / 10000) }} / {{ Math.round(targetIncome / 10000) }}만원
       </p>
