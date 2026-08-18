@@ -87,7 +87,7 @@ function selectMenuItem(id) {
 <template>
   <template v-if="subView === 'main'">
     <div class="flex flex-col">
-      <AppHeader title="마이페이지" />
+      <AppHeader title="마이페이지" hide-bell />
 
       <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
         <ProfileHeader v-if="profile" :profile="profile" />

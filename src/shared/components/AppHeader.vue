@@ -9,6 +9,7 @@ import { fetchUnreadCount } from '@/features/notification/api'
 defineProps({
   title: { type: String, required: true },
   back: { type: Boolean, default: false },
+  hideBell: { type: Boolean, default: false },
 })
 
 defineEmits(['back'])
@@ -40,7 +41,7 @@ function goToNotifications() {
     </button>
     <h1 class="truncate text-[15px] font-bold text-grey-500">{{ title }}</h1>
     <button
-      v-if="!back"
+      v-if="!back && !hideBell"
       type="button"
       aria-label="알림"
       class="absolute right-4"
