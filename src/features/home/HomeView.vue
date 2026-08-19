@@ -28,17 +28,17 @@ function goToNotifications() {
 }
 
 const remainingHours = computed(() =>
-  Math.max(0, dashboard.value.goalHours.target - dashboard.value.goalHours.current),
+  Math.max(0, dashboard.value.goalHours - dashboard.value.confirmedHours),
 )
 const hoursProgressPercent = computed(() =>
-  Math.min(100, (dashboard.value.goalHours.current / dashboard.value.goalHours.target) * 100),
+  Math.min(100, (dashboard.value.confirmedHours / dashboard.value.goalHours) * 100),
 )
 
 const goalIncomePercent = computed(() =>
-  Math.round((dashboard.value.goalIncome.amount / dashboard.value.goalIncome.target) * 100),
+  Math.round((dashboard.value.actualIncome / dashboard.value.goalIncome) * 100),
 )
 const goalIncomeRemaining = computed(
-  () => dashboard.value.goalIncome.target - dashboard.value.goalIncome.amount,
+  () => dashboard.value.goalIncome - dashboard.value.actualIncome,
 )
 
 const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
@@ -49,9 +49,9 @@ const greetingMonthLabel = computed(() => {
 })
 
 const averageWage = computed(() => {
-  const { current } = dashboard.value.goalHours
+  const current = dashboard.value.confirmedHours
   if (!current) return 0
-  return Math.round(dashboard.value.goalIncome.amount / current)
+  return Math.round(dashboard.value.actualIncome / current)
 })
 </script>
 
@@ -87,7 +87,7 @@ const averageWage = computed(() => {
             class="absolute -top-8 -translate-x-1/2 rounded-[4px] bg-primary-600 px-2 py-1 text-caption font-semibold text-white transition-all"
             :style="{ left: `${hoursProgressPercent}%` }"
           >
-            {{ dashboard.goalHours.current }}h
+            {{ dashboard.confirmedHours }}h
           </div>
           <div class="h-2 w-full overflow-hidden rounded-full bg-grey-50">
             <div
@@ -97,7 +97,7 @@ const averageWage = computed(() => {
           </div>
           <div class="mt-1.5 flex justify-between text-body4 text-grey-300">
             <span>0h</span>
-            <span>{{ dashboard.goalHours.target }}h</span>
+            <span>{{ dashboard.goalHours }}h</span>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@ const averageWage = computed(() => {
             </span>
           </div>
           <p class="mt-2 text-head3 font-bold text-grey-500">
-            {{ dashboard.goalIncome.amount.toLocaleString() }}원
+            {{ dashboard.actualIncome.toLocaleString() }}원
           </p>
           <div class="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-grey-50">
             <div
@@ -137,7 +137,7 @@ const averageWage = computed(() => {
             />
           </div>
           <p class="mt-2.5 text-caption text-grey-400">
-            목표 {{ dashboard.goalIncome.target.toLocaleString() }}원까지
+            목표 {{ dashboard.goalIncome.toLocaleString() }}원까지
             {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
           </p>
         </div>
