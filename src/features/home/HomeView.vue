@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { fetchDashboard } from './api'
 import { fetchUnreadCount } from '@/features/notification/api'
 import JobRecommendationCard from './components/JobRecommendationCard.vue'
+import DualProgressBar from './components/DualProgressBar.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import NtropyLogo from '@/shared/components/icons/NtropyLogo.vue'
 import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
@@ -29,9 +30,6 @@ function goToNotifications() {
 
 const remainingHours = computed(() =>
   Math.max(0, dashboard.value.goalHours - dashboard.value.confirmedHours),
-)
-const hoursProgressPercent = computed(() =>
-  Math.min(100, (dashboard.value.confirmedHours / dashboard.value.goalHours) * 100),
 )
 
 const goalIncomePercent = computed(() =>
@@ -82,24 +80,14 @@ const averageWage = computed(() => {
           >시간 남았어요
         </p>
 
-        <div class="relative mt-10">
-          <div
-            class="absolute -top-8 -translate-x-1/2 rounded-[4px] bg-primary-600 px-2 py-1 text-caption font-semibold text-white transition-all"
-            :style="{ left: `${hoursProgressPercent}%` }"
-          >
-            {{ dashboard.confirmedHours }}h
-          </div>
-          <div class="h-2 w-full overflow-hidden rounded-full bg-grey-50">
-            <div
-              class="h-full rounded-full bg-gradient-to-r from-primary-100 to-primary-600"
-              :style="{ width: `${hoursProgressPercent}%` }"
-            />
-          </div>
-          <div class="mt-1.5 flex justify-between text-body4 text-grey-300">
-            <span>0h</span>
-            <span>{{ dashboard.goalHours }}h</span>
-          </div>
-        </div>
+        <DualProgressBar
+          class="mt-10"
+          :actual="dashboard.confirmedHours"
+          :planned="dashboard.scheduledHours"
+          :goal="dashboard.goalHours"
+          planned-label="계획"
+          :format-value="(v) => `${v}h`"
+        />
       </div>
 
       <div v-if="dashboard.jobRecommendations.length > 0" class="flex flex-col gap-3">
