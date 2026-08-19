@@ -119,7 +119,7 @@ const averageWage = computed(() => {
             {{ dashboard.actualIncome.toLocaleString() }}원
           </p>
           <DualProgressBar
-            class="mt-8"
+            class="mt-10"
             track-height-class="h-1.5"
             :actual="dashboard.actualIncome"
             :planned="dashboard.expectedSettlementIncome"
