@@ -15,6 +15,7 @@ const router = useRouter()
 const { data: dashboard, isLoading } = useQuery({
   queryKey: ['home', 'dashboard'],
   queryFn: fetchDashboard,
+  refetchOnMount: 'always',
 })
 
 const { data: unreadCount } = useQuery({
