@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/vue-query'
 import { fetchDashboard } from './api'
 import { fetchUnreadCount } from '@/features/notification/api'
 import JobRecommendationCard from './components/JobRecommendationCard.vue'
+import DualProgressBar from './components/DualProgressBar.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import NtropyLogo from '@/shared/components/icons/NtropyLogo.vue'
 import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
@@ -28,17 +29,14 @@ function goToNotifications() {
 }
 
 const remainingHours = computed(() =>
-  Math.max(0, dashboard.value.goalHours.target - dashboard.value.goalHours.current),
-)
-const hoursProgressPercent = computed(() =>
-  Math.min(100, (dashboard.value.goalHours.current / dashboard.value.goalHours.target) * 100),
+  Math.max(0, dashboard.value.goalHours - dashboard.value.confirmedHours),
 )
 
 const goalIncomePercent = computed(() =>
-  Math.round((dashboard.value.goalIncome.amount / dashboard.value.goalIncome.target) * 100),
+  Math.round((dashboard.value.actualIncome / dashboard.value.goalIncome) * 100),
 )
 const goalIncomeRemaining = computed(
-  () => dashboard.value.goalIncome.target - dashboard.value.goalIncome.amount,
+  () => dashboard.value.goalIncome - dashboard.value.actualIncome,
 )
 
 const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
@@ -49,9 +47,9 @@ const greetingMonthLabel = computed(() => {
 })
 
 const averageWage = computed(() => {
-  const { current } = dashboard.value.goalHours
+  const current = dashboard.value.confirmedHours
   if (!current) return 0
-  return Math.round(dashboard.value.goalIncome.amount / current)
+  return Math.round(dashboard.value.actualIncome / current)
 })
 </script>
 
@@ -82,24 +80,14 @@ const averageWage = computed(() => {
           >시간 남았어요
         </p>
 
-        <div class="relative mt-10">
-          <div
-            class="absolute -top-8 -translate-x-1/2 rounded-[4px] bg-primary-600 px-2 py-1 text-caption font-semibold text-white transition-all"
-            :style="{ left: `${hoursProgressPercent}%` }"
-          >
-            {{ dashboard.goalHours.current }}h
-          </div>
-          <div class="h-2 w-full overflow-hidden rounded-full bg-grey-50">
-            <div
-              class="h-full rounded-full bg-gradient-to-r from-primary-100 to-primary-600"
-              :style="{ width: `${hoursProgressPercent}%` }"
-            />
-          </div>
-          <div class="mt-1.5 flex justify-between text-body4 text-grey-300">
-            <span>0h</span>
-            <span>{{ dashboard.goalHours.target }}h</span>
-          </div>
-        </div>
+        <DualProgressBar
+          class="mt-10"
+          :actual="dashboard.confirmedHours"
+          :planned="dashboard.scheduledHours"
+          :goal="dashboard.goalHours"
+          planned-label="계획"
+          :format-value="(v) => `${v}h`"
+        />
       </div>
 
       <div v-if="dashboard.jobRecommendations.length > 0" class="flex flex-col gap-3">
@@ -128,16 +116,19 @@ const averageWage = computed(() => {
             </span>
           </div>
           <p class="mt-2 text-head3 font-bold text-grey-500">
-            {{ dashboard.goalIncome.amount.toLocaleString() }}원
+            {{ dashboard.actualIncome.toLocaleString() }}원
           </p>
-          <div class="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-grey-50">
-            <div
-              class="h-full rounded-full bg-primary-500"
-              :style="{ width: `${goalIncomePercent}%` }"
-            />
-          </div>
+          <DualProgressBar
+            class="mt-10"
+            track-height-class="h-1.5"
+            :actual="dashboard.actualIncome"
+            :planned="dashboard.expectedSettlementIncome"
+            :goal="dashboard.goalIncome"
+            planned-label="예상 정산"
+            :format-value="(v) => `${v.toLocaleString()}원`"
+          />
           <p class="mt-2.5 text-caption text-grey-400">
-            목표 {{ dashboard.goalIncome.target.toLocaleString() }}원까지
+            목표 {{ dashboard.goalIncome.toLocaleString() }}원까지
             {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
           </p>
         </div>
