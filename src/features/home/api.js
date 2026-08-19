@@ -2,12 +2,16 @@ import { requestWithMock } from '@/shared/api/request'
 
 const MOCK_DASHBOARD = {
   greetingName: '동현',
-  confirmedHours: 32,
-  scheduledHours: 6,
-  goalHours: 40,
-  actualIncome: 1780000,
-  expectedSettlementIncome: 220000,
-  goalIncome: 2500000,
+  goalHours: {
+    confirmedHours: 12,
+    scheduledHours: 20,
+    goalHours: 40,
+  },
+  goalIncome: {
+    actualIncome: 780000,
+    expectedSettlementIncome: 1200000,
+    goalIncome: 2500000,
+  },
   fatigueScore: 72,
 }
 

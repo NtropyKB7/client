@@ -29,14 +29,14 @@ function goToNotifications() {
 }
 
 const remainingHours = computed(() =>
-  Math.max(0, dashboard.value.goalHours - dashboard.value.confirmedHours),
+  Math.max(0, dashboard.value.goalHours.goalHours - dashboard.value.goalHours.confirmedHours),
 )
 
 const goalIncomePercent = computed(() =>
-  Math.round((dashboard.value.actualIncome / dashboard.value.goalIncome) * 100),
+  Math.round((dashboard.value.goalIncome.actualIncome / dashboard.value.goalIncome.goalIncome) * 100),
 )
 const goalIncomeRemaining = computed(
-  () => dashboard.value.goalIncome - dashboard.value.actualIncome,
+  () => dashboard.value.goalIncome.goalIncome - dashboard.value.goalIncome.actualIncome,
 )
 
 const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
@@ -47,9 +47,9 @@ const greetingMonthLabel = computed(() => {
 })
 
 const averageWage = computed(() => {
-  const current = dashboard.value.confirmedHours
+  const current = dashboard.value.goalHours.confirmedHours
   if (!current) return 0
-  return Math.round(dashboard.value.actualIncome / current)
+  return Math.round(dashboard.value.goalIncome.actualIncome / current)
 })
 </script>
 
@@ -82,9 +82,9 @@ const averageWage = computed(() => {
 
         <DualProgressBar
           class="mt-10"
-          :actual="dashboard.confirmedHours"
-          :planned="dashboard.scheduledHours"
-          :goal="dashboard.goalHours"
+          :actual="dashboard.goalHours.confirmedHours"
+          :planned="dashboard.goalHours.scheduledHours"
+          :goal="dashboard.goalHours.goalHours"
           planned-label="계획"
           :format-value="(v) => `${v}h`"
         />
@@ -116,19 +116,19 @@ const averageWage = computed(() => {
             </span>
           </div>
           <p class="mt-2 text-head3 font-bold text-grey-500">
-            {{ dashboard.actualIncome.toLocaleString() }}원
+            {{ dashboard.goalIncome.actualIncome.toLocaleString() }}원
           </p>
           <DualProgressBar
             class="mt-10"
             track-height-class="h-1.5"
-            :actual="dashboard.actualIncome"
-            :planned="dashboard.expectedSettlementIncome"
-            :goal="dashboard.goalIncome"
+            :actual="dashboard.goalIncome.actualIncome"
+            :planned="dashboard.goalIncome.expectedSettlementIncome"
+            :goal="dashboard.goalIncome.goalIncome"
             planned-label="예상 정산"
             :format-value="(v) => `${v.toLocaleString()}원`"
           />
           <p class="mt-2.5 text-caption text-grey-400">
-            목표 {{ dashboard.goalIncome.toLocaleString() }}원까지
+            목표 {{ dashboard.goalIncome.goalIncome.toLocaleString() }}원까지
             {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
           </p>
         </div>
