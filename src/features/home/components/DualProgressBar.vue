@@ -49,7 +49,7 @@ const plannedPercent = computed(() => percentOf(props.planned))
       </p>
     </div>
 
-    <div class="mt-1.5 flex justify-between text-body4 text-grey-300">
+    <div class="mt-8 flex justify-between text-body4 text-grey-300">
       <span>{{ formatValue(0) }}</span>
       <span>{{ formatValue(goal) }}</span>
     </div>
