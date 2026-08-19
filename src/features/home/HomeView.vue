@@ -118,12 +118,15 @@ const averageWage = computed(() => {
           <p class="mt-2 text-head3 font-bold text-grey-500">
             {{ dashboard.actualIncome.toLocaleString() }}원
           </p>
-          <div class="mt-3.5 h-1.5 w-full overflow-hidden rounded-full bg-grey-50">
-            <div
-              class="h-full rounded-full bg-primary-500"
-              :style="{ width: `${goalIncomePercent}%` }"
-            />
-          </div>
+          <DualProgressBar
+            class="mt-8"
+            track-height-class="h-1.5"
+            :actual="dashboard.actualIncome"
+            :planned="dashboard.expectedSettlementIncome"
+            :goal="dashboard.goalIncome"
+            planned-label="예상 정산"
+            :format-value="(v) => `${v.toLocaleString()}원`"
+          />
           <p class="mt-2.5 text-caption text-grey-400">
             목표 {{ dashboard.goalIncome.toLocaleString() }}원까지
             {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
