@@ -230,7 +230,6 @@ const scheduledHours = computed(() => monthData.value?.summary?.scheduledHours ?
 const goalHours = computed(
   () => monthData.value?.summary?.goalHours ?? MONTH_SUMMARY_TARGET.hours,
 )
-const actualHours = computed(() => confirmedHours.value)
 const plannedHours = computed(() => confirmedHours.value + scheduledHours.value)
 const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
 const targetIncome = computed(
@@ -400,7 +399,6 @@ function openEntryDetail(entry) {
       />
 
       <MonthSummaryBar
-        :actual-hours="actualHours"
         :planned-hours="plannedHours"
         :goal-hours="goalHours"
         :planned-income="plannedIncome"
