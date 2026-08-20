@@ -1,5 +1,7 @@
 <!-- src/features/calendar/components/CalendarCell.vue -->
 <script setup>
+import { getCategoryColor } from '@/shared/utils/jobCategory'
+
 defineProps({
   cell: { type: Object, default: null },
 })
@@ -33,7 +35,12 @@ const STATUS_CAPSULE = {
       {{ cell.dayNumber }}
     </span>
     <span class="flex h-0.5 gap-0.5">
-      <span v-if="cell.hasWork" class="h-0.5 w-3 rounded-full bg-gray-400" />
+      <span
+        v-for="categoryId in cell.categoryIds"
+        :key="categoryId"
+        class="h-0.5 w-3 rounded-full"
+        :class="getCategoryColor(categoryId).colorClass"
+      />
     </span>
   </button>
 </template>

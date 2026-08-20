@@ -54,8 +54,9 @@ function normalizeMonthlySummary(data) {
     year: data.year,
     month: data.month,
     summary: {
-      plannedHours: data.summary?.plannedHours ?? 0,
-      actualHours: data.summary?.actualHours ?? 0,
+      confirmedHours: data.summary?.confirmedHours ?? 0,
+      scheduledHours: data.summary?.scheduledHours ?? 0,
+      goalHours: data.summary?.goalHours ?? 0,
       expectedIncome: data.summary?.expectedIncome ?? 0,
       targetAmount: data.summary?.targetAmount ?? null,
     },
@@ -79,6 +80,8 @@ function normalizeDailySummary(data) {
       startTime: timeArrayToLabel(work.startTime),
       endTime: timeArrayToLabel(work.endTime),
       status: work.status,
+      taskCount: work.taskCount ?? null,
+      fatigue: work.fatigue ?? null,
     })),
     fatigue: {
       score: data.fatigue?.score ?? 0,
@@ -284,20 +287,28 @@ function buildMockMonthlySummary(year, month) {
     weather: MOCK_WEATHER_BY_DATE[dateKey] ?? null,
   }))
 
-  const plannedHours = Math.round(
-    monthEntries.reduce((sum, entry) => sum + mockEntryHours(entry), 0),
-  )
-  // 'planned'(아직 근무 전)만 제외하고, 근무일지가 작성된 'confirmed'/'settled'는 모두 실제 근무로 집계.
-  const actualHours = Math.round(
+  // 'planned'(아직 근무 전)만 예정 시간으로, 근무일지가 작성된 'confirmed'/'settled'는 확정 시간으로 집계.
+  const confirmedHours = Math.round(
     monthEntries
       .filter((entry) => entry.status !== 'planned')
+      .reduce((sum, entry) => sum + mockEntryHours(entry), 0),
+  )
+  const scheduledHours = Math.round(
+    monthEntries
+      .filter((entry) => entry.status === 'planned')
       .reduce((sum, entry) => sum + mockEntryHours(entry), 0),
   )
 
   return {
     year,
     month,
-    summary: { plannedHours, actualHours, expectedIncome: 0, targetAmount: null },
+    summary: {
+      confirmedHours,
+      scheduledHours,
+      goalHours: MONTH_SUMMARY_TARGET.hours,
+      expectedIncome: 0,
+      targetAmount: null,
+    },
     days,
   }
 }

@@ -45,6 +45,12 @@ const selectedJob = computed(() => props.jobs.find((job) => job.id === draft.val
 const isCountJob = computed(() => selectedJob.value?.incomeMethodLabel === '건당 정산')
 const isConfirmMode = computed(() => props.mode === 'confirm')
 const isEditMode = computed(() => props.mode === 'edit')
+// 이미 확정된(CONFIRMED) 과거 근무일지를 수정하는 경우: confirm 바텀시트와 동일한 요청 스키마
+// (jobId/startTime/endTime/fatigue/taskCount)를 쓰므로, 필드 구성도 confirm 모드와 동일하게 맞춘다.
+const isEditingConfirmedEntry = computed(
+  () => isEditMode.value && props.entry?.status === 'CONFIRMED',
+)
+const showDetailFields = computed(() => isConfirmMode.value || isEditingConfirmedEntry.value)
 
 const FATIGUE_LABELS = { 1: '여유', 3: '보통', 5: '힘듦' }
 
@@ -55,9 +61,11 @@ const title = computed(() => {
   const [, month, day] = props.dateKey.split('-')
   const label = isConfirmMode.value
     ? confirmActionLabel.value
-    : isEditMode.value
-      ? '근무 시간 계획 수정'
-      : '근무 시간 계획'
+    : isEditingConfirmedEntry.value
+      ? '근무일지 수정'
+      : isEditMode.value
+        ? '근무 시간 계획 수정'
+        : '근무 시간 계획'
   return `${Number(month)}월 ${Number(day)}일 ${label}`
 })
 
@@ -71,12 +79,12 @@ function submit() {
     jobId: job.id,
     startTime: draft.value.startTime,
     endTime: draft.value.endTime,
-    count: isConfirmMode.value
+    count: showDetailFields.value
       ? isCountJob.value
         ? Number(draft.value.count) || 0
         : null
       : (props.entry?.count ?? null),
-    fatigue: isConfirmMode.value ? draft.value.fatigue : (props.entry?.fatigue ?? null),
+    fatigue: showDetailFields.value ? draft.value.fatigue : (props.entry?.fatigue ?? null),
   }
   modalStore.close(payload)
 }
@@ -137,7 +145,7 @@ function requestDelete() {
       </div>
     </div>
 
-    <label v-if="isConfirmMode && isCountJob" class="block">
+    <label v-if="showDetailFields && isCountJob" class="block">
       <p class="mb-1.5 text-caption font-medium text-grey-400">총 건수</p>
       <input
         v-model="draft.count"
@@ -147,7 +155,7 @@ function requestDelete() {
       />
     </label>
 
-    <div v-if="isConfirmMode">
+    <div v-if="showDetailFields">
       <p class="mb-1.5 text-caption font-medium text-grey-400">오늘 노동 피로도</p>
       <div class="flex gap-1.5">
         <div v-for="level in 5" :key="level" class="flex flex-1 flex-col items-center gap-1">
@@ -169,14 +177,14 @@ function requestDelete() {
     </div>
 
     <p
-      v-if="!isConfirmMode"
+      v-if="!showDetailFields"
       class="rounded-lg bg-primary-50 px-3.5 py-3 text-caption text-primary-800"
     >
       계획한 시간은 캘린더와 피로도 추천에 반영돼요.
     </p>
 
     <Button :disabled="!isValid" @click="submit">
-      {{ isConfirmMode ? confirmActionLabel : '근무 시간 저장' }}
+      {{ isConfirmMode ? confirmActionLabel : isEditingConfirmedEntry ? '근무일지 수정' : '근무 시간 저장' }}
     </Button>
 
     <button

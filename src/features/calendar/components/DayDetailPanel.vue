@@ -1,18 +1,24 @@
 <!-- src/features/calendar/components/DayDetailPanel.vue -->
 <script setup>
+import { computed } from 'vue'
 import Button from '@/shared/components/Button.vue'
+import { getCategoryColor } from '@/shared/utils/jobCategory'
+import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
 
-defineProps({
+const props = defineProps({
   dateKey: { type: String, required: true },
   entries: { type: Array, required: true },
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
-  isFatigueOverThreshold: { type: Boolean, default: false },
   isDefenseMode: { type: Boolean, default: false },
   primaryActionLabel: { type: String, required: true },
 })
 
 const emit = defineEmits(['primary-action', 'open-entry'])
+
+const fatigueBadge = computed(() =>
+  props.fatigueScore === null ? null : getFatigueBadge(props.fatigueScore, 100),
+)
 </script>
 
 <template>
@@ -45,7 +51,8 @@ const emit = defineEmits(['primary-action', 'open-entry'])
     >
       <span class="flex items-center gap-2">
         <span
-          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] bg-gray-400 text-[10px] font-bold text-white"
+          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] text-[10px] font-bold text-white"
+          :class="getCategoryColor(entry.categoryId).colorClass"
         >
           {{ entry.jobName.slice(0, 1) }}
         </span>
@@ -55,15 +62,11 @@ const emit = defineEmits(['primary-action', 'open-entry'])
     </button>
 
     <p
-      v-if="fatigueScore !== null"
+      v-if="fatigueBadge"
       class="mt-3 rounded-lg px-2.5 py-2 text-caption font-medium"
-      :class="isFatigueOverThreshold ? 'bg-red-50 text-red-600' : 'bg-primary-50 text-primary-800'"
+      :class="fatigueBadge.className"
     >
-      {{
-        isFatigueOverThreshold
-          ? `주의 · 피로도 ${fatigueScore}, 휴식 후 기록해 주세요`
-          : `예상 피로도 ${fatigueScore} · 적정 범위예요`
-      }}
+      {{ fatigueBadge.label }} · 예상 피로도 {{ fatigueScore }} · {{ fatigueBadge.hint }}
     </p>
 
     <Button class="mt-3" @click="emit('primary-action')">{{ primaryActionLabel }}</Button>

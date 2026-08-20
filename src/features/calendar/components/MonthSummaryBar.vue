@@ -3,6 +3,7 @@
 defineProps({
   actualHours: { type: Number, required: true },
   plannedHours: { type: Number, required: true },
+  goalHours: { type: Number, required: true },
   plannedIncome: { type: Number, required: true },
   targetIncome: { type: Number, required: true },
 })
@@ -22,7 +23,7 @@ function progressPercent(value, target) {
     <div class="mt-2 h-1 rounded-full bg-grey-50">
       <div
         class="h-1 rounded-full bg-primary-500"
-        :style="{ width: `${progressPercent(actualHours, plannedHours)}%` }"
+        :style="{ width: `${progressPercent(plannedHours, goalHours)}%` }"
       />
     </div>
 
