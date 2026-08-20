@@ -142,6 +142,13 @@ function mapSettlementStatus(settlementStatus, dateKey) {
 
 const grid = computed(() => getMonthGrid(currentYear.value, currentMonth.value))
 
+// 캘린더 응답(day.jobs[]/work.jobId)엔 category 정보가 없어서, jobs 쿼리(categoryId 포함)로 조인한다.
+const categoryByJobId = computed(() => {
+  const map = new Map()
+  for (const job of jobs.value ?? []) map.set(job.id, job.categoryId)
+  return map
+})
+
 const weatherByDate = computed(() => {
   const map = {}
   for (const day of monthData.value?.days ?? []) {
@@ -165,8 +172,9 @@ const cells = computed(() =>
         : day
           ? mapSettlementStatus(day.settlementStatus, dateKey)
           : 'none',
-      // TODO: job/category-controller 연동 후 카테고리별 색상 dot으로 복원(현재 백엔드 jobs[]엔 category 없음)
-      hasWork: (day?.jobs?.length ?? 0) > 0,
+      categoryIds: [
+        ...new Set((day?.jobs ?? []).map((job) => categoryByJobId.value.get(job.jobId))),
+      ].filter(Boolean),
       isSelected: dateKey === selectedDateKey.value,
       weather: weatherByDate.value[dateKey] ?? null,
     }
@@ -204,19 +212,26 @@ const selectedEntries = computed(
       startTime: work.startTime ?? '-',
       endTime: work.endTime ?? '-',
       status: work.status,
+      count: work.taskCount,
+      fatigue: work.fatigue,
+      categoryId: categoryByJobId.value.get(work.jobId) ?? null,
     })) ?? [],
 )
 const selectedWeather = computed(
   () => dayData.value?.weather ?? weatherByDate.value[selectedDateKey.value] ?? null,
 )
 const selectedFatigueScore = computed(() => dayData.value?.fatigue?.score ?? null)
-const selectedFatigueOverThreshold = computed(
-  () => dayData.value?.fatigue?.isOverThreshold ?? false,
-)
 const selectedIsDefenseMode = computed(() => isDefenseDate(selectedDateKey.value))
 
-const plannedHours = computed(() => monthData.value?.summary?.plannedHours ?? 0)
-const actualHours = computed(() => monthData.value?.summary?.actualHours ?? 0)
+// home 대시보드와 동일한 방식: 계획(확정+예정)은 goal로 캡 없이 합산해 표시하고,
+// 목표 대비 진행률(진행바 폭)은 goalHours를 분모로 계산한다.
+const confirmedHours = computed(() => monthData.value?.summary?.confirmedHours ?? 0)
+const scheduledHours = computed(() => monthData.value?.summary?.scheduledHours ?? 0)
+const goalHours = computed(
+  () => monthData.value?.summary?.goalHours ?? MONTH_SUMMARY_TARGET.hours,
+)
+const actualHours = computed(() => confirmedHours.value)
+const plannedHours = computed(() => confirmedHours.value + scheduledHours.value)
 const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
 const targetIncome = computed(
   () => monthData.value?.summary?.targetAmount ?? MONTH_SUMMARY_TARGET.income,
@@ -365,6 +380,7 @@ function openEntryDetail(entry) {
         :year="currentYear"
         :month="currentMonth"
         :cells="cells"
+        :jobs="jobs ?? []"
         @prev-month="goPrevMonth"
         @next-month="goNextMonth"
         @select="selectDate"
@@ -377,7 +393,6 @@ function openEntryDetail(entry) {
         :entries="selectedEntries"
         :weather="selectedWeather"
         :fatigue-score="selectedFatigueScore"
-        :is-fatigue-over-threshold="selectedFatigueOverThreshold"
         :is-defense-mode="selectedIsDefenseMode"
         :primary-action-label="primaryActionLabel"
         @primary-action="handlePrimaryAction"
@@ -387,6 +402,7 @@ function openEntryDetail(entry) {
       <MonthSummaryBar
         :actual-hours="actualHours"
         :planned-hours="plannedHours"
+        :goal-hours="goalHours"
         :planned-income="plannedIncome"
         :target-income="targetIncome"
       />
