@@ -39,7 +39,8 @@ const emit = defineEmits(['primary-action', 'open-entry'])
       v-for="entry in entries"
       :key="entry.id"
       type="button"
-      class="mt-2 flex w-full items-center justify-between rounded-[9px] bg-grey-30 px-2.5 py-2 text-left"
+      class="mt-2 flex w-full items-center justify-between rounded-[9px] px-2.5 py-2 text-left"
+      :class="entry.status === 'CONFIRMED' ? 'bg-primary-50' : 'bg-grey-30'"
       @click="emit('open-entry', entry)"
     >
       <span class="flex items-center gap-2">
