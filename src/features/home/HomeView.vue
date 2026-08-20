@@ -39,11 +39,12 @@ const plannedHours = computed(() =>
   ),
 )
 
-const goalIncomePercent = computed(() =>
+const goalHoursPercent = computed(() =>
   Math.round(
-    (dashboard.value.goalIncome.actualIncome / dashboard.value.goalIncome.goalIncome) * 100,
+    (dashboard.value.goalHours.confirmedHours / dashboard.value.goalHours.goalHours) * 100,
   ),
 )
+
 const goalIncomeRemaining = computed(
   () => dashboard.value.goalIncome.goalIncome - dashboard.value.goalIncome.actualIncome,
 )
@@ -84,18 +85,18 @@ const averageWage = computed(() => {
           {{ dashboard.greetingName }}님의 {{ greetingMonthLabel }}
         </p>
         <p class="text-head1 leading-[1.5] text-grey-500">
-          목표 근무시간까지<br />
-          <span class="text-primary-600">{{ remainingHours }}</span
-          >시간 남았어요
+          목표 금액까지<br />
+          <span class="text-primary-600">{{ goalIncomeRemaining.toLocaleString() }}</span
+          >원 남았어요
         </p>
 
         <DualProgressBar
           class="mt-10"
-          :actual="dashboard.goalHours.confirmedHours"
-          :planned="plannedHours"
-          :goal="dashboard.goalHours.goalHours"
-          planned-label="계획"
-          :format-value="(v) => `${v}h`"
+          :actual="dashboard.goalIncome.actualIncome"
+          :planned="dashboard.goalIncome.expectedSettlementIncome"
+          :goal="dashboard.goalIncome.goalIncome"
+          planned-label="예상 정산"
+          :format-value="(v) => `${v.toLocaleString()}원`"
         />
       </div>
 
@@ -117,28 +118,27 @@ const averageWage = computed(() => {
 
         <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
           <div class="flex items-center justify-between">
-            <p class="text-caption font-medium text-grey-400">목표 수입</p>
+            <p class="text-caption font-medium text-grey-400">근무시간</p>
             <span
               class="rounded-full bg-primary-50 px-2.5 py-1 text-caption font-bold text-primary-800"
             >
-              {{ goalIncomePercent }}%
+              {{ goalHoursPercent }}%
             </span>
           </div>
           <p class="mt-2 text-head3 font-bold text-grey-500">
-            {{ dashboard.goalIncome.actualIncome.toLocaleString() }}원
+            {{ dashboard.goalHours.confirmedHours }}시간
           </p>
           <DualProgressBar
             class="mt-10"
             track-height-class="h-1.5"
-            :actual="dashboard.goalIncome.actualIncome"
-            :planned="dashboard.goalIncome.expectedSettlementIncome"
-            :goal="dashboard.goalIncome.goalIncome"
-            planned-label="예상 정산"
-            :format-value="(v) => `${v.toLocaleString()}원`"
+            :actual="dashboard.goalHours.confirmedHours"
+            :planned="plannedHours"
+            :goal="dashboard.goalHours.goalHours"
+            planned-label="계획"
+            :format-value="(v) => `${v}h`"
           />
           <p class="mt-2.5 text-caption text-grey-400">
-            목표 {{ dashboard.goalIncome.goalIncome.toLocaleString() }}원까지
-            {{ goalIncomeRemaining.toLocaleString() }}원 남았어요
+            목표 {{ dashboard.goalHours.goalHours }}시간까지 {{ remainingHours }}시간 남았어요
           </p>
         </div>
 
