@@ -32,8 +32,17 @@ const remainingHours = computed(() =>
   Math.max(0, dashboard.value.goalHours.goalHours - dashboard.value.goalHours.confirmedHours),
 )
 
+const plannedHours = computed(() =>
+  Math.min(
+    dashboard.value.goalHours.goalHours,
+    dashboard.value.goalHours.confirmedHours + dashboard.value.goalHours.scheduledHours,
+  ),
+)
+
 const goalIncomePercent = computed(() =>
-  Math.round((dashboard.value.goalIncome.actualIncome / dashboard.value.goalIncome.goalIncome) * 100),
+  Math.round(
+    (dashboard.value.goalIncome.actualIncome / dashboard.value.goalIncome.goalIncome) * 100,
+  ),
 )
 const goalIncomeRemaining = computed(
   () => dashboard.value.goalIncome.goalIncome - dashboard.value.goalIncome.actualIncome,
@@ -83,7 +92,7 @@ const averageWage = computed(() => {
         <DualProgressBar
           class="mt-10"
           :actual="dashboard.goalHours.confirmedHours"
-          :planned="dashboard.goalHours.scheduledHours"
+          :planned="plannedHours"
           :goal="dashboard.goalHours.goalHours"
           planned-label="계획"
           :format-value="(v) => `${v}h`"
