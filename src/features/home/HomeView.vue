@@ -49,6 +49,13 @@ const goalIncomeRemaining = computed(
   () => dashboard.value.goalIncome.goalIncome - dashboard.value.goalIncome.actualIncome,
 )
 
+const plannedIncome = computed(() =>
+  Math.min(
+    dashboard.value.goalIncome.goalIncome,
+    dashboard.value.goalIncome.actualIncome + dashboard.value.goalIncome.expectedSettlementIncome,
+  ),
+)
+
 const fatigueBadge = computed(() => getFatigueBadge(dashboard.value.fatigueScore, 100))
 
 const greetingMonthLabel = computed(() => {
@@ -93,7 +100,7 @@ const averageWage = computed(() => {
         <DualProgressBar
           class="mt-10"
           :actual="dashboard.goalIncome.actualIncome"
-          :planned="dashboard.goalIncome.expectedSettlementIncome"
+          :planned="plannedIncome"
           :goal="dashboard.goalIncome.goalIncome"
           planned-label="예상 정산"
           :format-value="(v) => `${v.toLocaleString()}원`"
