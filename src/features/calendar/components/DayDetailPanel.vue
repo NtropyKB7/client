@@ -1,6 +1,7 @@
 <!-- src/features/calendar/components/DayDetailPanel.vue -->
 <script setup>
 import Button from '@/shared/components/Button.vue'
+import { getCategoryColor } from '@/shared/utils/jobCategory'
 
 defineProps({
   dateKey: { type: String, required: true },
@@ -45,7 +46,8 @@ const emit = defineEmits(['primary-action', 'open-entry'])
     >
       <span class="flex items-center gap-2">
         <span
-          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] bg-gray-400 text-[10px] font-bold text-white"
+          class="flex size-5 shrink-0 items-center justify-center rounded-[6px] text-[10px] font-bold text-white"
+          :class="getCategoryColor(entry.categoryId).colorClass"
         >
           {{ entry.jobName.slice(0, 1) }}
         </span>

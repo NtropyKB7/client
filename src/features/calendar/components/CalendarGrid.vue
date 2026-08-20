@@ -3,11 +3,13 @@
 import CalendarCell from './CalendarCell.vue'
 import ChevronLeftIcon from '@/shared/components/icons/ChevronLeftIcon.vue'
 import ChevronRightIcon from '@/shared/components/icons/ChevronRightIcon.vue'
+import { getCategoryColor } from '@/shared/utils/jobCategory'
 
 defineProps({
   year: { type: Number, required: true },
   month: { type: Number, required: true },
   cells: { type: Array, required: true },
+  jobs: { type: Array, default: () => [] },
 })
 
 const emit = defineEmits(['prev-month', 'next-month', 'select'])
@@ -58,6 +60,13 @@ const SETTLEMENT_LEGEND = [
         :cell="cell"
         @select="emit('select', cell.date)"
       />
+    </div>
+
+    <div v-if="jobs.length" class="mt-3 flex flex-wrap gap-4 text-caption text-grey-400">
+      <span v-for="job in jobs" :key="job.id" class="flex items-center gap-1.5">
+        <span class="h-0.5 w-4 rounded-full" :class="getCategoryColor(job.categoryId).colorClass" />
+        {{ job.name }}
+      </span>
     </div>
   </div>
 </template>
