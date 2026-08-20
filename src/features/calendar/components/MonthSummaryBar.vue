@@ -1,7 +1,6 @@
 <!-- src/features/calendar/components/MonthSummaryBar.vue -->
 <script setup>
 defineProps({
-  actualHours: { type: Number, required: true },
   plannedHours: { type: Number, required: true },
   goalHours: { type: Number, required: true },
   plannedIncome: { type: Number, required: true },
@@ -18,7 +17,7 @@ function progressPercent(value, target) {
   <div class="rounded-2xl border border-grey-50 bg-grey-white p-4">
     <div class="flex items-center justify-between">
       <p class="text-body3 text-grey-500">계획/추천 근무시간</p>
-      <p class="text-caption text-grey-400">{{ actualHours }} / {{ plannedHours }}시간</p>
+      <p class="text-caption text-grey-400">{{ plannedHours }} / {{ goalHours }}시간</p>
     </div>
     <div class="mt-2 h-1 rounded-full bg-grey-50">
       <div
