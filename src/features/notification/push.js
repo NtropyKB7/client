@@ -15,17 +15,35 @@ function toSubscriptionPayload(subscription) {
 // 이미 구독이 있으면(정상 상태거나, 서버에만 등록이 빠진 상태) 그대로 서버에 재등록하고,
 // 없으면(만료 등) 새로 구독한다. 토글 직후(권한 승인 직후)와 부팅 시 재확인(ensurePushSubscription)
 // 양쪽에서 공유하는 핵심 로직.
+//
+// 기존 구독이 지금 서버 공개키와 다른 키로 만들어졌으면(서버가 VAPID 키를 바꾼 경우) 그 구독은
+// 영원히 403만 반환한다 — 브라우저 PushSubscription은 최초 구독 시점의 키에 고정되기 때문. 그래서
+// 재구독 전에 현재 구독의 applicationServerKey를 서버가 지금 주는 공개키와 비교해, 다르면 먼저
+// unsubscribe한 뒤 새 키로 다시 구독한다.
 export async function subscribeToPush() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) return
 
   const registration = await navigator.serviceWorker.ready
+  const publicKey = await fetchPushPublicKey()
+  const expectedKey = urlBase64ToUint8Array(publicKey)
+
   let subscription = await registration.pushManager.getSubscription()
 
+  if (subscription) {
+    const currentKey = new Uint8Array(subscription.options.applicationServerKey)
+    const keysMatch =
+      currentKey.length === expectedKey.length &&
+      currentKey.every((byte, i) => byte === expectedKey[i])
+    if (!keysMatch) {
+      await subscription.unsubscribe()
+      subscription = null
+    }
+  }
+
   if (!subscription) {
-    const publicKey = await fetchPushPublicKey()
     subscription = await registration.pushManager.subscribe({
       userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
+      applicationServerKey: expectedKey,
     })
   }
 
