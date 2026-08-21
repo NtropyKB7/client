@@ -11,6 +11,7 @@ import {
   requestGeolocationPermission,
   requestNotificationPermission,
 } from '../utils/permission'
+import { subscribeToPush, unsubscribeFromPush } from '@/features/notification/push'
 
 const props = defineProps({
   profile: { type: Object, default: null },
@@ -76,6 +77,14 @@ async function reconcileAgreement(field, browserStatusRef, agreeRef) {
   } else if (browserStatusRef.value === 'denied' && agreeRef.value) {
     agreeRef.value = false
     await syncAgreement(field, false)
+
+    if (field === 'alarmAgree') {
+      try {
+        await unsubscribeFromPush()
+      } catch {
+        // 서버 쪽 죽은 구독 정리 실패는 무시 — 다음 기회에 다시 시도해도 무방
+      }
+    }
   }
 }
 
@@ -120,6 +129,15 @@ async function toggleNotification() {
     notificationBrowserStatus.value = result === 'default' ? 'prompt' : result
   }
   await reconcileAgreement('alarmAgree', notificationBrowserStatus, alarmAgree)
+
+  if (notificationBrowserStatus.value === 'granted') {
+    try {
+      await subscribeToPush()
+    } catch {
+      // 구독 등록 실패는 alarmAgree(브라우저 권한의 거울)를 되돌리지 않는다 — 다음 부팅 시
+      // ensurePushSubscription이 자동으로 재시도한다.
+    }
+  }
 }
 </script>
 

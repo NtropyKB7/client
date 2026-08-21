@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { exchangeOAuthCode, refreshTokens, fetchMyInfo, logoutRequest } from './api'
+import { unsubscribeFromPush } from '@/features/notification/push'
 
 const REFRESH_TOKEN_STORAGE_KEY = 'ntropy_refresh_token'
 
@@ -129,6 +130,10 @@ export const useAuthStore = defineStore('auth', () => {
   async function logout() {
     try {
       if (accessToken.value && accessToken.value !== 'debug') {
+        // 공용 PC 등 같은 기기를 다른 계정이 이어 쓰는 경우를 대비해 로그아웃 시 브라우저
+        // 구독까지 완전히 해지한다(서버 등록 해제 + unsubscribe). 재로그인 시엔
+        // ensurePushSubscription이 조용히 재구독한다.
+        await unsubscribeFromPush()
         await logoutRequest()
       }
     } catch {

@@ -2,12 +2,8 @@
 <script setup>
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { useRouter } from 'vue-router'
-import {
-  fetchNotifications,
-  markNotificationRead,
-  deleteNotification,
-} from '@/features/notification/api'
-import { formatDateKey } from '@/features/calendar/utils'
+import { fetchNotifications, deleteNotification } from '@/features/notification/api'
+import { openNotification as openNotificationShared } from '@/features/notification/routing'
 import AppHeader from '@/shared/components/AppHeader.vue'
 import ProfileHeader from './ProfileHeader.vue'
 
@@ -29,26 +25,14 @@ function toDateLabel(createdAt) {
   return createdAt ? createdAt.slice(0, 10) : ''
 }
 
-function invalidateNotificationQueries() {
-  queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] })
-  queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
-}
-
-async function openNotification(notification) {
-  try {
-    await markNotificationRead(notification.notificationId)
-    invalidateNotificationQueries()
-  } catch {
-    // 읽음 처리 실패는 근무일지 확정 이동을 막지 않는다 — 부가 효과일 뿐, 핵심 동작이 아님
-  }
-
-  const dateKey = formatDateKey(new Date(notification.createdAt))
-  router.push({ name: 'calendar', query: { date: dateKey, autoConfirm: '1' } })
+function openNotification(notification) {
+  return openNotificationShared(notification, { router, queryClient })
 }
 
 async function removeNotification(notificationId) {
   await deleteNotification(notificationId)
-  invalidateNotificationQueries()
+  queryClient.invalidateQueries({ queryKey: ['notifications', 'list'] })
+  queryClient.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
 }
 </script>
 

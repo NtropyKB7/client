@@ -1,12 +1,34 @@
 <script setup>
 import { onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useQueryClient } from '@tanstack/vue-query'
 import BottomTabBar from './BottomTabBar.vue'
 import { fetchUnreadCount } from '@/features/notification/api'
+import { openNotification } from '@/features/notification/routing'
+import { ensurePushSubscription } from '@/features/notification/push'
 import { useToastStore } from '@/shared/store/toast'
 
 const toastStore = useToastStore()
 const queryClient = useQueryClient()
+const route = useRoute()
+const router = useRouter()
+
+// push 알림 클릭으로 열린 경우: SW는 항상 /home?notificationId=...로만 열어주고(SW는 인증 API를
+// 직접 호출할 수 없음), 실제 읽음 처리·타입별 이동은 여기서 인앱 클릭과 동일한 로직으로 수행한다.
+async function handlePushDeepLink() {
+  if (!route.query.notificationId) return false
+
+  const notification = {
+    notificationId: Number(route.query.notificationId),
+    notificationType: route.query.notificationType,
+    createdAt: route.query.createdAt,
+  }
+  const navigated = await openNotification(notification, { router, queryClient })
+  if (!navigated) {
+    router.replace({ path: route.path })
+  }
+  return true
+}
 
 // 앱 마운트마다(최초 진입은 물론, 401로 인한 로그아웃 후 재로그인으로 AppLayout이
 // 재마운트되는 경우까지 포함) 안읽음 알림 개수를 다시 확인해 토스트를 띄운다.
@@ -18,6 +40,10 @@ const queryClient = useQueryClient()
 // 조회 실패 시에는(에러는 이미 suppressErrorToast로 무시됨) 예외를 조용히 삼켜
 // 토스트를 띄우지 않는다.
 onMounted(async () => {
+  ensurePushSubscription()
+
+  if (await handlePushDeepLink()) return
+
   let unreadCount
   try {
     unreadCount = await queryClient.fetchQuery({
