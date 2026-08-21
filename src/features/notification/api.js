@@ -61,12 +61,12 @@ export async function deleteNotification(notificationId) {
   return requestWithMock(null, (client) => client.delete(`/notifications/${notificationId}`))
 }
 
-const MOCK_VAPID_PUBLIC_KEY = 'mock-vapid-public-key'
+// TEMP: 서버 응답이 안정화되기 전까지 고정 VAPID 공개키를 사용한다(백엔드 확인 완료된 값).
+const VAPID_PUBLIC_KEY =
+  'BDWrIN-8ZI_jjyNwJSTM3xKZZKnu6-6KTgAETX0MKBkXOdGIdrRUw1nbUGtJQNDJY6O-97rh73siCm_FoVdTjO4'
 
 export async function fetchPushPublicKey() {
-  return requestWithMock(MOCK_VAPID_PUBLIC_KEY, (client) =>
-    client.get('/notifications/push-public-key'),
-  )
+  return VAPID_PUBLIC_KEY
 }
 
 export async function registerPushSubscription({ endpoint, keys }) {
