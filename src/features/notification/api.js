@@ -61,12 +61,14 @@ export async function deleteNotification(notificationId) {
   return requestWithMock(null, (client) => client.delete(`/notifications/${notificationId}`))
 }
 
-// TEMP: 서버 응답이 안정화되기 전까지 고정 VAPID 공개키를 사용한다(백엔드 확인 완료된 값).
-const VAPID_PUBLIC_KEY =
+// mock 전용 폴백. 실 연동 시에는 서버가 실제로 서명에 쓰는 키를 반드시 조회해야 한다 — 하드코딩된
+// 키는 서버 인스턴스마다 다른 VAPID 키 쌍(webpush-local.properties)과 어긋나면 푸시 발송이 영구히
+// 403으로 실패한다.
+const MOCK_VAPID_PUBLIC_KEY =
   'BDWrIN-8ZI_jjyNwJSTM3xKZZKnu6-6KTgAETX0MKBkXOdGIdrRUw1nbUGtJQNDJY6O-97rh73siCm_FoVdTjO4'
 
 export async function fetchPushPublicKey() {
-  return VAPID_PUBLIC_KEY
+  return requestWithMock(MOCK_VAPID_PUBLIC_KEY, (client) => client.get('/notifications/push-public-key'))
 }
 
 export async function registerPushSubscription({ endpoint, keys }) {
