@@ -60,3 +60,23 @@ export async function markNotificationRead(notificationId) {
 export async function deleteNotification(notificationId) {
   return requestWithMock(null, (client) => client.delete(`/notifications/${notificationId}`))
 }
+
+const MOCK_VAPID_PUBLIC_KEY = 'mock-vapid-public-key'
+
+export async function fetchPushPublicKey() {
+  return requestWithMock(MOCK_VAPID_PUBLIC_KEY, (client) =>
+    client.get('/notifications/push-public-key'),
+  )
+}
+
+export async function registerPushSubscription({ endpoint, keys }) {
+  return requestWithMock(null, (client) =>
+    client.post('/notifications/push-subscriptions', { endpoint, keys }),
+  )
+}
+
+export async function unregisterPushSubscription(endpoint) {
+  return requestWithMock(null, (client) =>
+    client.delete('/notifications/push-subscriptions', { params: { endpoint } }),
+  )
+}
