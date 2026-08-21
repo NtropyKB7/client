@@ -29,7 +29,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
+  <Teleport to="#app-frame">
     <Transition
       enter-active-class="transition-opacity duration-150 ease-out"
       enter-from-class="opacity-0"

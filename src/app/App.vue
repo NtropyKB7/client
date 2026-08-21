@@ -4,7 +4,14 @@ import ToastRoot from '@/shared/components/ToastRoot.vue'
 </script>
 
 <template>
-  <router-view />
-  <ModalRoot />
-  <ToastRoot />
+  <div class="flex min-h-screen justify-center bg-grey-100">
+    <div
+      id="app-frame"
+      class="relative min-h-screen w-full max-w-[430px] overflow-hidden bg-grey-white contain-layout sm:shadow-2xl"
+    >
+      <router-view />
+      <ModalRoot />
+      <ToastRoot />
+    </div>
+  </div>
 </template>
