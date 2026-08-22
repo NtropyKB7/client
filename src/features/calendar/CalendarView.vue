@@ -63,9 +63,8 @@ watch(subscription, (value) => {
 const isSubscribed = computed(() => mypageStore.planId === 'pro')
 
 function isDateInDefenseRange(dateKey) {
-  if (!defenseModeStore.isActive || !defenseModeStore.startDate || !defenseModeStore.endDate) {
-    return false
-  }
+  if (!defenseModeStore.startDate || !defenseModeStore.endDate) return false
+  if (!defenseModeStore.isActive && !defenseModeStore.isScheduled) return false
   return dateKey >= defenseModeStore.startDate && dateKey <= defenseModeStore.endDate
 }
 
@@ -112,8 +111,12 @@ function isDateInPastDefensePeriods(dateKey) {
   )
 }
 
-function isDefenseDate(dateKey) {
-  return isDateInDefenseRange(dateKey) || isDateInPastDefensePeriods(dateKey)
+// 캘린더 기간(defenseCalendarPeriods)엔 status가 없어 예약 여부를 알 수 없으므로, 현재
+// 진행중/예약 상태는 store(단일 레코드)로 먼저 판단하고 나머지(지난 기간)는 항상 'defense'로 취급한다.
+function getDefenseStatus(dateKey) {
+  if (isDateInDefenseRange(dateKey)) return defenseModeStore.isScheduled ? 'scheduled' : 'active'
+  if (isDateInPastDefensePeriods(dateKey)) return 'active'
+  return null
 }
 
 // 오늘부터 5일치 실황 예보(weather-controller). monthly에 내장된 weather는 예보 범위를 벗어나면
@@ -162,13 +165,15 @@ const cells = computed(() =>
     if (!date) return null
     const dateKey = formatDateKey(date)
     const day = daysByDate.value.get(dateKey)
-    const isDefenseMode = isDefenseDate(dateKey)
+    const defenseStatus = getDefenseStatus(dateKey)
     return {
       date,
       dateKey,
       dayNumber: date.getDate(),
-      status: isDefenseMode
-        ? 'defense'
+      status: defenseStatus
+        ? defenseStatus === 'scheduled'
+          ? 'defenseScheduled'
+          : 'defense'
         : day
           ? mapSettlementStatus(day.settlementStatus, dateKey)
           : 'none',
@@ -221,15 +226,13 @@ const selectedWeather = computed(
   () => dayData.value?.weather ?? weatherByDate.value[selectedDateKey.value] ?? null,
 )
 const selectedFatigueScore = computed(() => dayData.value?.fatigue?.score ?? null)
-const selectedIsDefenseMode = computed(() => isDefenseDate(selectedDateKey.value))
+const selectedDefenseStatus = computed(() => getDefenseStatus(selectedDateKey.value))
 
 // home 대시보드와 동일한 방식: 계획(확정+예정)은 goal로 캡 없이 합산해 표시하고,
 // 목표 대비 진행률(진행바 폭)은 goalHours를 분모로 계산한다.
 const confirmedHours = computed(() => monthData.value?.summary?.confirmedHours ?? 0)
 const scheduledHours = computed(() => monthData.value?.summary?.scheduledHours ?? 0)
-const goalHours = computed(
-  () => monthData.value?.summary?.goalHours ?? MONTH_SUMMARY_TARGET.hours,
-)
+const goalHours = computed(() => monthData.value?.summary?.goalHours ?? MONTH_SUMMARY_TARGET.hours)
 const plannedHours = computed(() => confirmedHours.value + scheduledHours.value)
 const plannedIncome = computed(() => monthData.value?.summary?.expectedIncome ?? 0)
 const targetIncome = computed(
@@ -392,7 +395,7 @@ function openEntryDetail(entry) {
         :entries="selectedEntries"
         :weather="selectedWeather"
         :fatigue-score="selectedFatigueScore"
-        :is-defense-mode="selectedIsDefenseMode"
+        :defense-status="selectedDefenseStatus"
         :primary-action-label="primaryActionLabel"
         @primary-action="handlePrimaryAction"
         @open-entry="openEntryDetail"
