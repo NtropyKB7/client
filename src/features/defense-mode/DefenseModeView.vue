@@ -8,7 +8,12 @@ import { fetchSubscription } from '@/features/mypage/api'
 import AppHeader from '@/shared/components/AppHeader.vue'
 import Button from '@/shared/components/Button.vue'
 import { useDefenseModeStore } from './store'
-import { fetchDefenseModeData, fetchDefenseCauses, enterDefenseMode, releaseDefenseMode } from './api'
+import {
+  fetchDefenseModeData,
+  fetchDefenseCauses,
+  enterDefenseMode,
+  releaseDefenseMode,
+} from './api'
 import { formatDateKey } from './utils'
 import DeclarationForm from './components/DeclarationForm.vue'
 import SurvivalCalculatorCard from './components/SurvivalCalculatorCard.vue'
@@ -17,6 +22,7 @@ import FixedExpenseChecklist from './components/FixedExpenseChecklist.vue'
 import InsuranceClaimChecklist from './components/InsuranceClaimChecklist.vue'
 import DeactivateConfirmModal from './components/DeactivateConfirmModal.vue'
 import SubscriptionRequiredCard from './components/SubscriptionRequiredCard.vue'
+import ScheduledDefenseCard from './components/ScheduledDefenseCard.vue'
 import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
 
 const defenseStore = useDefenseModeStore()
@@ -82,6 +88,13 @@ async function openDeactivateConfirm() {
 
     <div class="flex flex-col gap-4 px-4 pt-5 pb-6">
       <SubscriptionRequiredCard v-if="!isSubscribed" />
+
+      <ScheduledDefenseCard
+        v-else-if="defenseStore.isScheduled"
+        :cause-name="defenseData?.causeName ?? ''"
+        :start-date="defenseData?.unavailableStartDate ?? ''"
+        :end-date="defenseData?.expectedReturnDate ?? ''"
+      />
 
       <template v-else-if="defenseStore.isActive">
         <div
