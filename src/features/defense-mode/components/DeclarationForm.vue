@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import Button from '@/shared/components/Button.vue'
 import DatePicker from '@/shared/components/DatePicker.vue'
 import DefenseIcon from '@/shared/components/icons/DefenseIcon.vue'
+import { formatDateKey } from '../utils'
 
 defineProps({
   causes: { type: Array, required: true },
@@ -23,6 +24,10 @@ const isRangeValid = computed(
 const isValid = computed(
   () => selectedCause.value && startDate.value && endDate.value && isRangeValid.value,
 )
+const isFutureStart = computed(
+  () => !!startDate.value && startDate.value > formatDateKey(new Date()),
+)
+const submitLabel = computed(() => (isFutureStart.value ? '방어모드 예약하기' : '방어모드 진입'))
 
 function selectCause(id) {
   selectedCause.value = id
@@ -95,7 +100,7 @@ function submit() {
       </div>
 
       <div v-if="selectedCause" class="mt-4">
-        <Button :disabled="!isValid" @click="submit">방어모드 진입</Button>
+        <Button :disabled="!isValid" @click="submit">{{ submitLabel }}</Button>
       </div>
     </div>
 
