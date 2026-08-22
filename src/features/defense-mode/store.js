@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const STORAGE_KEY = 'ntropy_defense_mode'
 
@@ -16,9 +16,12 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
   const persisted = loadPersisted()
   const defenseId = ref(null)
   const isActive = ref(false)
+  const status = ref(null)
   const cause = ref(null)
   const startDate = ref(null)
   const endDate = ref(null)
+  // GET /defense/active는 진행중과 예약(status: 'SCHEDULED')된 방어모드를 함께 내려준다.
+  const isScheduled = computed(() => status.value === 'SCHEDULED')
   // 체크리스트 완료 여부는 백엔드가 추적하지 않는 순수 클라이언트 상태라 계속 로컬에 보관한다.
   const checkedInsuranceIds = ref(persisted?.checkedInsuranceIds ?? [])
 
@@ -40,7 +43,8 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
       return
     }
     defenseId.value = data.defenseId
-    isActive.value = true
+    status.value = data.status
+    isActive.value = data.status !== 'SCHEDULED'
     cause.value = data.causeCode
     startDate.value = data.unavailableStartDate
     endDate.value = data.expectedReturnDate
@@ -49,6 +53,7 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
   function clear() {
     defenseId.value = null
     isActive.value = false
+    status.value = null
     cause.value = null
     startDate.value = null
     endDate.value = null
@@ -69,6 +74,8 @@ export const useDefenseModeStore = defineStore('defenseMode', () => {
   return {
     defenseId,
     isActive,
+    status,
+    isScheduled,
     cause,
     startDate,
     endDate,

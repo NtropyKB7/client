@@ -220,6 +220,7 @@ function normalizeDefenseMode(data) {
   if (!data) return null
   return {
     defenseId: data.defenseId,
+    status: data.status,
     causeCode: data.causeCode,
     causeName: data.causeName,
     unavailableStartDate: data.unavailableStartDate,
