@@ -1,6 +1,6 @@
 <!-- src/features/home/HomeView.vue -->
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuery } from '@tanstack/vue-query'
 import { fetchDashboard } from './api'
@@ -10,8 +10,13 @@ import DualProgressBar from './components/DualProgressBar.vue'
 import BellIcon from '@/shared/components/icons/BellIcon.vue'
 import NtropyLogo from '@/shared/components/icons/NtropyLogo.vue'
 import { getFatigueBadge } from '@/shared/utils/fatigueLevel'
+import { useDragScroll } from '@/shared/composables/useDragScroll'
+import InstallBanner from './components/InstallBanner.vue'
 
 const router = useRouter()
+
+const jobRecommendationsRef = ref(null)
+useDragScroll(jobRecommendationsRef, { axis: 'x' })
 
 const { data: dashboard, isLoading } = useQuery({
   queryKey: ['home', 'dashboard'],
@@ -72,6 +77,8 @@ const averageWage = computed(() => {
 
 <template>
   <div class="flex flex-col gap-8 bg-grey-white pb-8">
+    <InstallBanner />
+
     <p v-if="isLoading" class="px-4 pt-6 text-body4 text-grey-400">불러오는 중...</p>
 
     <template v-else-if="dashboard">
@@ -109,7 +116,7 @@ const averageWage = computed(() => {
 
       <div v-if="dashboard.jobRecommendations.length > 0" class="flex flex-col gap-3">
         <p class="pl-4 text-body1 text-grey-500">잡별 추천 근무시간</p>
-        <div class="scrollbar-none flex overflow-x-auto py-1">
+        <div ref="jobRecommendationsRef" class="scrollbar-none flex overflow-x-auto py-1">
           <div class="w-4 shrink-0" aria-hidden="true" />
           <JobRecommendationCard
             v-for="job in dashboard.jobRecommendations"

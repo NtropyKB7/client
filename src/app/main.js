@@ -1,4 +1,5 @@
 import '../style.css'
+import '@/shared/store/installPrompt'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'

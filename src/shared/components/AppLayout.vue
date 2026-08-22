@@ -61,8 +61,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex min-h-screen flex-col bg-grey-white">
-    <main class="flex-1 overflow-y-auto pb-[84px]">
+  <div class="flex flex-col bg-grey-white">
+    <main class="pb-[84px]">
       <router-view />
     </main>
     <BottomTabBar />
