@@ -6,7 +6,7 @@ const toastStore = useToastStore()
 </script>
 
 <template>
-  <Teleport to="#app-frame">
+  <Teleport to="body">
     <Transition
       enter-active-class="transition duration-200 ease-out"
       enter-from-class="opacity-0 translate-y-2"
