@@ -13,6 +13,7 @@ const STATUS_CAPSULE = {
   pending: 'bg-amber-100',
   settled: 'bg-primary-100',
   defense: 'bg-rose-200',
+  defenseScheduled: 'bg-rose-100',
 }
 </script>
 

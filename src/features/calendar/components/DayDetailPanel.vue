@@ -10,7 +10,7 @@ const props = defineProps({
   entries: { type: Array, required: true },
   weather: { type: Object, default: null },
   fatigueScore: { type: Number, default: null },
-  isDefenseMode: { type: Boolean, default: false },
+  defenseStatus: { type: String, default: null }, // null | 'active' | 'scheduled'
   primaryActionLabel: { type: String, required: true },
 })
 
@@ -31,10 +31,10 @@ const fatigueBadge = computed(() =>
     </div>
 
     <p
-      v-if="isDefenseMode"
+      v-if="defenseStatus"
       class="mt-3 rounded-lg bg-rose-50 px-2.5 py-2 text-caption font-medium text-rose-500"
     >
-      방어모드 기간이에요
+      {{ defenseStatus === 'scheduled' ? '예약된 방어모드 기간이에요' : '방어모드 기간이에요' }}
     </p>
 
     <p v-if="entries.length === 0" class="mt-3 text-caption text-grey-400">
