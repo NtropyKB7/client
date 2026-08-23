@@ -19,6 +19,13 @@ const emit = defineEmits(['primary-action', 'open-entry'])
 const fatigueBadge = computed(() =>
   props.fatigueScore === null ? null : getFatigueBadge(props.fatigueScore, 100),
 )
+
+// 정산완료(초록) > 확정됨·미정산(노랑) > 계획(회색) 순으로 판단.
+function entryRowClass(entry) {
+  if (entry.settlementStatus === 'COMPLETED') return 'bg-primary-50'
+  if (entry.status === 'CONFIRMED') return 'bg-amber-50'
+  return 'bg-grey-30'
+}
 </script>
 
 <template>
@@ -46,7 +53,7 @@ const fatigueBadge = computed(() =>
       :key="entry.id"
       type="button"
       class="mt-2 flex w-full items-center justify-between rounded-[9px] px-2.5 py-2 text-left"
-      :class="entry.status === 'CONFIRMED' ? 'bg-primary-50' : 'bg-grey-30'"
+      :class="entryRowClass(entry)"
       @click="emit('open-entry', entry)"
     >
       <span class="flex items-center gap-2">

@@ -80,6 +80,7 @@ function normalizeDailySummary(data) {
       startTime: timeArrayToLabel(work.startTime),
       endTime: timeArrayToLabel(work.endTime),
       status: work.status,
+      settlementStatus: work.settlementStatus ?? null,
       taskCount: work.taskCount ?? null,
       fatigue: work.fatigue ?? null,
     })),
@@ -324,13 +325,17 @@ function buildMockDailySummary(dateKey) {
   return {
     dateKey,
     dayOfWeek: WEEKDAY_LABELS[new Date(dateKey).getDay()],
+    // 실제 백엔드는 work.status를 PLANNED/CONFIRMED로만 관리하고, 정산 여부는 별도
+    // settlementStatus('COMPLETED' 외 null)로 내려준다. 시드 데이터의 'settled'는
+    // "확정 후 정산완료"를 뜻하므로 status는 CONFIRMED로, settlementStatus만 COMPLETED로 맞춘다.
     works: dayEntries.map((entry) => ({
       workId: entry.id,
       jobId: entry.jobId,
       jobName: entry.jobName,
       startTime: entry.startTime,
       endTime: entry.endTime,
-      status: entry.status.toUpperCase(),
+      status: entry.status === 'settled' ? 'CONFIRMED' : entry.status.toUpperCase(),
+      settlementStatus: entry.status === 'settled' ? 'COMPLETED' : null,
     })),
     fatigue: {
       score,

@@ -217,6 +217,7 @@ const selectedEntries = computed(
       startTime: work.startTime ?? '-',
       endTime: work.endTime ?? '-',
       status: work.status,
+      settlementStatus: work.settlementStatus,
       count: work.taskCount,
       fatigue: work.fatigue,
       categoryId: categoryByJobId.value.get(work.jobId) ?? null,
