@@ -6,6 +6,7 @@ import { fetchCategories, fetchPlatforms } from '@/features/onboarding/api'
 import { INCOME_METHOD_OPTIONS } from '@/shared/utils/incomeMethod'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
 import CheckIcon from '@/shared/components/icons/CheckIcon.vue'
+import TimePickerField from '@/features/calendar/components/TimePickerField.vue'
 
 const DAYS = ['월', '화', '수', '목', '금', '토', '일']
 
@@ -340,19 +341,9 @@ function cancel() {
 
       <p class="mb-2 mt-3.5 text-caption font-medium text-grey-400">근무 시간</p>
       <div class="flex items-center gap-2">
-        <input
-          v-model="draft.startTime"
-          type="text"
-          placeholder="09:00"
-          class="w-full rounded-xl bg-grey-30 px-3.5 py-3 text-center text-body4 font-medium text-grey-500 placeholder:text-grey-300 focus:outline-none"
-        />
+        <TimePickerField v-model="draft.startTime" placeholder="09:00" class="flex-1" />
         <span class="text-body4 text-grey-400">—</span>
-        <input
-          v-model="draft.endTime"
-          type="text"
-          placeholder="18:00"
-          class="w-full rounded-xl bg-grey-30 px-3.5 py-3 text-center text-body4 font-medium text-grey-500 placeholder:text-grey-300 focus:outline-none"
-        />
+        <TimePickerField v-model="draft.endTime" placeholder="18:00" class="flex-1" />
       </div>
     </div>
 
