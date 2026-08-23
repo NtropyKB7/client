@@ -2,8 +2,9 @@
 import { useRouter } from 'vue-router'
 import { useOnboardingStore } from './store'
 import { useAccountConnections } from './composables/useAccountConnections'
-import { getBankStyle, isAccountActive, BIRTH_DATE_DEFAULT_YEAR } from './api'
+import { BIRTH_DATE_DEFAULT_YEAR } from './api'
 import OnboardingProgressBar from './components/OnboardingProgressBar.vue'
+import ConnectedAccountRow from './components/ConnectedAccountRow.vue'
 import Button from '@/shared/components/Button.vue'
 import DatePicker from '@/shared/components/DatePicker.vue'
 import ChevronDownIcon from '@/shared/components/icons/ChevronDownIcon.vue'
@@ -56,41 +57,13 @@ function submit() {
       <div v-if="connectedAccounts?.length" class="flex flex-col gap-3">
         <p class="text-body1 text-grey-500">연결된 계좌</p>
 
-        <div
+        <ConnectedAccountRow
           v-for="account in connectedAccounts"
           :key="account.accountId"
-          class="flex items-center justify-between rounded-[20px] border border-grey-50 p-4"
-        >
-          <div class="flex items-center gap-3">
-            <span
-              class="flex size-9 shrink-0 items-center justify-center rounded-xl text-body3 font-bold"
-              :style="{
-                backgroundColor: getBankStyle(account.bankName).bg,
-                color: getBankStyle(account.bankName).text,
-              }"
-            >
-              {{ getBankStyle(account.bankName).initial }}
-            </span>
-            <div>
-              <p class="text-body4 font-medium text-grey-500">{{ account.bankName }}</p>
-              <p class="text-caption text-grey-400">{{ account.accountNoMasked }}</p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            class="rounded-full px-3 py-1.5 text-caption font-bold transition-opacity disabled:opacity-40"
-            :class="
-              isAccountActive(account)
-                ? 'bg-primary-50 text-primary-800'
-                : 'bg-grey-30 text-grey-400'
-            "
-            :disabled="togglingAccountId === account.accountId || !canDeactivate(account)"
-            @click="toggleAccount(account)"
-          >
-            {{ isAccountActive(account) ? '연결됨' : '연결 끊김' }}
-          </button>
-        </div>
+          :account="account"
+          :disabled="togglingAccountId === account.accountId || !canDeactivate(account)"
+          @toggle="toggleAccount(account)"
+        />
 
         <p
           v-if="connectedAccounts.some((account) => !canDeactivate(account))"
