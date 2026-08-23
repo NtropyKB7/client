@@ -209,7 +209,9 @@ function mapMaintainStatus(maintainStatus) {
 function normalizeFixedExpenses(fixedExpenseCheck) {
   return (fixedExpenseCheck?.expenses ?? []).map((expense) => ({
     id: `commitment-${expense.commitmentId}`,
-    name: expense.expenseName,
+    name: expense.productName
+      ? `${expense.expenseName} · ${expense.productName}`
+      : expense.expenseName,
     amount: expense.expectedAmount,
     nextDueLabel: formatNextDueLabel(expense.nextPaymentDate),
     status: mapMaintainStatus(expense.maintainStatus),
