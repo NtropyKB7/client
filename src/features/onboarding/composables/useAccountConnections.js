@@ -88,15 +88,29 @@ export function useAccountConnections() {
     return activeConnectedCount.value + validPendingRows.value.length > 1
   }
 
+  // 서버 재조회(invalidateQueries) 대신 캐시를 직접 낙관적으로 갱신한다. GET /accounts가 활성 계좌만
+  // 내려줄 가능성이 있어, 재조회에 의존하면 비활성화한 계좌가 목록에서 사라져 다시 켤 수 없게 된다.
+  function patchAccountStatus(accountId, status) {
+    queryClient.setQueryData(['accounts'], (accounts) =>
+      accounts?.map((a) => (a.accountId === accountId ? { ...a, status } : a)),
+    )
+  }
+
   async function toggleAccount(account) {
+    const previousStatus = account.status
+    const nextStatus = isAccountActive(account) ? 'INACTIVE' : 'ACTIVE'
+
     togglingAccountId.value = account.accountId
+    patchAccountStatus(account.accountId, nextStatus)
     try {
-      if (isAccountActive(account)) {
+      if (nextStatus === 'INACTIVE') {
         await deactivateAccount(account.accountId)
       } else {
         await activateAccount(account.accountId)
       }
-      await queryClient.invalidateQueries({ queryKey: ['accounts'] })
+    } catch (error) {
+      patchAccountStatus(account.accountId, previousStatus)
+      throw error
     } finally {
       togglingAccountId.value = null
     }
