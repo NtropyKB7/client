@@ -11,7 +11,7 @@ const props = defineProps({
   savingPeriod: { type: Number, default: null },
   maxMonthlyAmount: { type: Number, default: null },
   targetGroup: { type: String, default: '' },
-  njobTrendTip: { type: String, default: '' },
+  reasoning: { type: String, default: '' },
   financialType: { type: String, default: '' },
   simulatedExtraIncome: { type: Number, default: null },
 })
@@ -40,7 +40,7 @@ const hasTags = computed(
   () => !!financialTypeLabel.value || !!props.targetGroup || !!simulatedExtraIncomeLabel.value,
 )
 
-const hasDetails = computed(() => hasTerms.value || hasTags.value || !!props.njobTrendTip)
+const hasDetails = computed(() => hasTerms.value || hasTags.value || !!props.reasoning)
 </script>
 
 <template>
@@ -99,7 +99,7 @@ const hasDetails = computed(() => hasTerms.value || hasTags.value || !!props.njo
         </span>
       </div>
 
-      <p v-if="njobTrendTip" class="text-[11px] text-primary-800">{{ njobTrendTip }}</p>
+      <p v-if="reasoning" class="text-[11px] text-primary-800">{{ reasoning }}</p>
     </div>
   </div>
 </template>

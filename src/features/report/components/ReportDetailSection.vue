@@ -101,7 +101,7 @@ function openDeliverySettings() {
           <AiInsightCard
             v-if="detail.insight"
             :description="detail.insight"
-            :reasoning="detail.reasoning"
+            :njob-trend-tip="detail.recommendedProduct?.njobTrendTip"
             :job-insight="detail.jobInsight"
             :future-income-trend="detail.futureIncomeTrend"
           />
@@ -114,7 +114,7 @@ function openDeliverySettings() {
             :saving-period="detail.recommendedProduct.savingPeriod"
             :max-monthly-amount="detail.recommendedProduct.maxMonthlyAmount"
             :target-group="detail.recommendedProduct.targetGroup"
-            :njob-trend-tip="detail.recommendedProduct.njobTrendTip"
+            :reasoning="detail.reasoning"
             :financial-type="detail.financialType"
             :simulated-extra-income="detail.simulatedExtraIncome"
           />
