@@ -55,7 +55,7 @@
 <!-- 데모 영상 링크와 썸네일을 추가해주세요 -->
 
 <p align="center">
-  <a href="#">
+  <a href="https://youtu.be/qjZMiiO7CHE">
     <img src="./docs/demo-thumbnail.png" alt="데모 영상" width="600" />
   </a>
   <br/>
