@@ -7,11 +7,13 @@ import { fetchUnreadCount } from '@/features/notification/api'
 import { openNotification } from '@/features/notification/routing'
 import { ensurePushSubscription } from '@/features/notification/push'
 import { useToastStore } from '@/shared/store/toast'
+import { useAuthStore } from '@/features/auth/store'
 
 const toastStore = useToastStore()
 const queryClient = useQueryClient()
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // push 알림 클릭으로 열린 경우: SW는 항상 /home?notificationId=...로만 열어주고(SW는 인증 API를
 // 직접 호출할 수 없음), 실제 읽음 처리·타입별 이동은 여기서 인앱 클릭과 동일한 로직으로 수행한다.
@@ -62,6 +64,12 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col bg-grey-white">
+    <div
+      v-if="authStore.isMockUser"
+      class="sticky top-0 z-10 bg-primary-50 py-2 text-center text-caption text-primary-800"
+    >
+      🧪 체험 모드 · 실제 데이터 아님
+    </div>
     <main class="pb-[84px]">
       <router-view />
     </main>

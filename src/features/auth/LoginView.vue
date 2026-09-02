@@ -43,6 +43,13 @@ function loginWithGoogle() {
   })
   window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params}`
 }
+
+// 실제 서비스 가입 없이 목데이터로 앱을 둘러볼 수 있게 하는 체험 진입로.
+// 카카오/구글 로그인과 동급으로 보이지 않도록 약관 문구 아래에 작은 텍스트 링크로만 노출한다.
+function enterMockMode() {
+  authStore.enterMockMode()
+  router.push({ name: 'home' })
+}
 </script>
 
 <template>
@@ -62,5 +69,13 @@ function loginWithGoogle() {
     <p class="pt-1 text-center text-[12px] tracking-[-0.02em] text-[#A3A3A3]">
       계속 진행 시 이용약관 및 마이데이터 수집·이용에 동의합니다
     </p>
+
+    <button
+      type="button"
+      class="pt-1 text-center text-[12px] tracking-[-0.02em] text-[#A3A3A3] underline underline-offset-2"
+      @click="enterMockMode"
+    >
+      🧪 목데이터로 둘러보기
+    </button>
   </div>
 </template>
